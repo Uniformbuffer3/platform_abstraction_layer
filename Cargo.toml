@@ -1,0 +1,34 @@
+[package]
+name = "pal"
+version = "0.1.0"
+authors = ["Fabio Sgamma <uniformbuffer3@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bitflags = "*"
+raw-window-handle = "*"
+keyboard-types = {version="*",default-features=false}
+wgpu = {version = "*",optional=true}
+libc = {version = "*",optional=true}
+
+[dev-dependencies]
+env_logger = "*"
+log = "*"
+
+[target.'cfg(target_os="linux")'.dependencies]
+keystroke_decoder = {path="../keystroke_decoder",optional=true}
+input = {version = "*",features=["udev"],optional=true}
+smithay-client-toolkit = {version="*",optional=true}
+x11rb = {version = "*", features=["randr","allow-unsafe-code"],default-features=false,optional=true}
+
+
+[features]
+default = ["wayland_platform","xcb_platform","libinput_platform"]
+wayland_platform = ["smithay-client-toolkit","keystroke_decoder"]
+xcb_platform = ["x11rb","keystroke_decoder"]
+libinput_platform = ["input","keystroke_decoder","libc"]
+
+external_context = []
+wgpu_interaction = ["wgpu","external_context"]
