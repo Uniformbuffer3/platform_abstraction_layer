@@ -16,7 +16,7 @@ fn create_window() {
 
 
     let initial_events = platform.dispatch();
-    for event in initial_events {
+    for event in &initial_events {
         match event {
             Event::Output(event)=>{
                 if let OutputEventType::Added(_) = event.event_type {
@@ -27,6 +27,7 @@ fn create_window() {
         }
 
     }
+    println!("{:#?}", initial_events);
 
     let mut surfaces = HashMap::new();
     'main_loop: loop {
@@ -59,11 +60,11 @@ fn create_window() {
 #[test]
 fn virtual_output_backend(){
     use crate::definitions::*;
-    use crate::backends::output_backends::VirtualOutputBackend;
-    let mut virtual_output_backend = VirtualOutputBackend::new();
+    use crate::backends::output_backends::OutputManager;
+    let mut output_manager = OutputManager::new();
 
     println!("Adding output 1");
-    let events = virtual_output_backend.add_output(
+    let events = output_manager.add_output(
         1u32.into(),
         Mode{
             resolution: Size {width: 1920, height: 1080},
@@ -81,7 +82,7 @@ fn virtual_output_backend(){
     println!("{:#?}",events);
 
     println!("Adding output 2");
-    let events = virtual_output_backend.add_output(
+    let events = output_manager.add_output(
         2u32.into(),
         Mode{
             resolution: Size {width: 1920, height: 1080},
@@ -99,7 +100,7 @@ fn virtual_output_backend(){
     println!("{:#?}",events);
 
     println!("Adding output 3");
-    let events = virtual_output_backend.add_output(
+    let events = output_manager.add_output(
         3u32.into(),
         Mode{
             resolution: Size {width: 1920, height: 1080},
@@ -117,7 +118,7 @@ fn virtual_output_backend(){
     println!("{:#?}",events);
 
     println!("Removing output 1");
-    let events = virtual_output_backend.del_output(1u32.into());
+    let events = output_manager.del_output(1u32.into());
     println!("{:#?}",events);
 
 }

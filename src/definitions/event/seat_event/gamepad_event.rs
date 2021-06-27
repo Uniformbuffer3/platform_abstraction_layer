@@ -1,10 +1,10 @@
 #[derive(Clone,Debug,PartialEq)]
-pub enum TouchEvent {
-    Added(TouchInfo),
+pub enum GamepadEvent {
+    Added(GamepadInfo),
     Removed,
 }
 
 #[derive(Clone,Debug,PartialEq)]
-pub struct TouchInfo {
+pub struct GamepadInfo {
 
 }

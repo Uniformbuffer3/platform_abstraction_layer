@@ -55,15 +55,32 @@ impl XcbPlatform {
             )
             .unwrap();
 
-        let mut pending_events = Vec::new();
+        let pending_events = Vec::new();
+        let mut platform = Self {
+            keystroke_decoder,
+            connection,
+            preferred_screen,
+            dummy_window,
+            wm_protocols,
+            wm_delete_window,
+            pending_events
+        };
 
-        let resources = x11rb::protocol::randr::get_screen_resources(connection.as_ref(), dummy_window).unwrap().reply().unwrap();
-        let monitors = x11rb::protocol::randr::get_monitors(connection.as_ref(), dummy_window,false).unwrap().reply().unwrap().monitors;
+        platform.detect_monitors();
+        platform.set_cursor_mode(0u32.into(),CursorMode::Absolute);
+        platform.set_key_repeat(0u32.into(),true);
+
+        Ok(platform)
+    }
+
+    fn detect_monitors(&mut self){
+        let resources = x11rb::protocol::randr::get_screen_resources(self.connection.as_ref(), self.dummy_window).unwrap().reply().unwrap();
+        let monitors = x11rb::protocol::randr::get_monitors(self.connection.as_ref(), self.dummy_window,false).unwrap().reply().unwrap().monitors;
 
         for (id,monitor) in monitors.iter().enumerate() {
             let output = monitor.outputs[0];
 
-            let output_info = x11rb::protocol::randr::get_output_info(connection.as_ref(),output,0).unwrap().reply().unwrap();
+            let output_info = x11rb::protocol::randr::get_output_info(self.connection.as_ref(),output,0).unwrap().reply().unwrap();
             if output_info.connection != x11rb::protocol::randr::Connection::CONNECTED {continue;}
 
             let position = (monitor.x as u32,monitor.y as u32).into();
@@ -105,31 +122,139 @@ impl XcbPlatform {
 
             let event_type = OutputEventType::Added(output_info);
             let event = OutputEvent::from((id,event_type));
-            pending_events.push(crate::definitions::Event::Output(event));
+            self.pending_events.push(crate::definitions::Event::Output(event));
         }
-
-        Ok(Self {
-            keystroke_decoder,
-            connection,
-            preferred_screen,
-            dummy_window,
-            wm_protocols,
-            wm_delete_window,
-            pending_events
-        })
     }
 }
 
-impl SeatBackend for XcbPlatform {
+
+impl PlatformBackend for XcbPlatform {
+    fn dispatch(&mut self) -> Vec<crate::definitions::Event> {
+        let mut events: Vec<crate::definitions::Event> = self.pending_events.drain(..).collect();
+
+        while let Ok(Some(event)) = self.connection.poll_for_event() {
+            match event {
+                Event::KeyPress(event) => {
+                    events.append(&mut handle_keyboard(
+                        &mut self.keystroke_decoder,
+                        0.into(),
+                        event.detail as u32,
+                    ));
+                }
+                Event::KeyRelease(event) => {
+                    events.append(&mut handle_keyboard(
+                        &mut self.keystroke_decoder,
+                        0.into(),
+                        event.detail as u32,
+                    ));
+                }
+                Event::ButtonPress(event) => {
+                    let id = 0u32.into();
+                    //let surface_id = SurfaceId::from(event.event);
+                    //let position = Position::from((event.event_x as u32,event.event_y as u32));
+                    let key = match event.detail {
+                        1 => crate::definitions::Button::Left,
+                        2 => crate::definitions::Button::Middle,
+                        3 => crate::definitions::Button::Right,
+                        _=> continue
+                    };
+                    let state = State::Down;
+                    let event_type = SeatEventType::Cursor(CursorEvent::Button {key,state});
+                    let event = SeatEvent::from((id,event_type));
+                    events.push(crate::definitions::Event::Seat(event));
+                }
+                Event::ButtonRelease(event) => {
+                    let id = 0u32.into();
+                    //let surface_id = SurfaceId::from(event.event);
+                    //let position = Position::from((event.event_x as u32,event.event_y as u32));
+                    let key = match event.detail {
+                        1 => crate::definitions::Button::Left,
+                        2 => crate::definitions::Button::Middle,
+                        3 => crate::definitions::Button::Right,
+                        _=> continue
+                    };
+                    let state = State::Up;
+                    let event_type = SeatEventType::Cursor(CursorEvent::Button {key,state});
+                    let event = SeatEvent::from((id,event_type));
+                    events.push(crate::definitions::Event::Seat(event));
+                }
+                Event::EnterNotify(event)=>{
+                    let id = 0.into();
+                    let surface_id = SurfaceId::from(event.event);
+                    let position = Position::from((event.event_x as u32,event.event_y as u32));
+                    let event_type = SeatEventType::Cursor(CursorEvent::Entered {surface_id,position});
+                    let event = SeatEvent::from((id,event_type));
+                    events.push(crate::definitions::Event::Seat(event));
+                }
+                Event::LeaveNotify(event)=>{
+                    let id = 0.into();
+                    let surface_id = SurfaceId::from(event.event);
+                    let event_type = SeatEventType::Cursor(CursorEvent::Left {surface_id});
+                    let event = SeatEvent::from((id,event_type));
+                    events.push(crate::definitions::Event::Seat(event));
+                }
+                Event::MotionNotify(event)=>{
+                    let id = 0.into();
+                    //let surface_id = SurfaceId::from(event.event);
+                    let position = Position::from((event.event_x as u32,event.event_y as u32));
+                    let event_type = SeatEventType::Cursor(CursorEvent::AbsoluteMovement{position});
+                    let event = SeatEvent::from((id,event_type));
+                    events.push(crate::definitions::Event::Seat(event));
+                }
+                Event::ConfigureNotify(event) => {
+                    let id = SurfaceId::from(event.window);
+                    let event_type = match event.response_type {
+                        x11rb::protocol::xproto::CONFIGURE_NOTIFY_EVENT => SurfaceEventType::Resized(Size::from((event.width as u32,event.height as u32))),
+                        150 => SurfaceEventType::Moved(Position::from((event.x as u32,event.y as u32))),
+                        _=>continue
+                    };
+                    let event = SurfaceEvent::from((id,event_type));
+                    events.push(crate::definitions::Event::Surface(event));
+                }
+                Event::DestroyNotify(event)=>{
+                    let id = SurfaceId::from(event.window);
+                    let event_type = SurfaceEventType::Removed;
+                    let event = SurfaceEvent::from((id,event_type));
+                    events.push(crate::definitions::Event::Surface(event));
+                }
+                Event::ClientMessage(event) => {
+                    let data = event.data.as_data32();
+                    if event.format == 32 && data[0] == self.wm_delete_window {
+                        self.connection.destroy_window(event.window).unwrap();
+                        self.connection.flush().unwrap();
+                    }
+                }
+                _ => {}
+            }
+        }
+        events
+    }
+
     fn set_keyboard_layout(&mut self, layout: String) {
         self.keystroke_decoder.set_layout(layout);
     }
-}
+    fn set_cursor_mode(&mut self, seat_id: SeatId, mode: CursorMode){
 
-impl OutputBackend for XcbPlatform {}
+    }
+    fn set_key_repeat(&mut self, seat_id: SeatId, value: bool){
+        let repeat_mode = match value {
+            true=>AutoRepeatMode::ON,
+            false=>AutoRepeatMode::OFF,
+        };
+        let parameters = ChangeKeyboardControlAux::new().auto_repeat_mode(repeat_mode);
+        match x11rb::protocol::xproto::change_keyboard_control(self.connection.as_ref(),&parameters){
+            Ok(_)=>{
+                let keyboard_event = KeyboardEvent::AutoRepeat(value);
+                let event_type = SeatEventType::Keyboard(keyboard_event);
+                let id = 0u32.into();
+                let event = SeatEvent::from((id,event_type));
+                self.pending_events.push(crate::definitions::Event::Seat(event));
+                println!("Successfully set repeat mode");
+            }
+            Err(_)=>{println!("Failed to set repeat mode");}
+        }
+    }
 
-
-impl SurfaceBackend for XcbPlatform {
     fn create_surface(
         &mut self,
         output: Option<crate::definitions::OutputId>,
@@ -154,7 +279,7 @@ impl SurfaceBackend for XcbPlatform {
                     | EventMask::PROPERTY_CHANGE
                     | EventMask::POINTER_MOTION,
             )
-            .background_pixel(screen.white_pixel);
+            .background_pixel(screen.black_pixel);
 
         let (x,y) = match output {
             Some(output)=>{
@@ -193,8 +318,6 @@ impl SurfaceBackend for XcbPlatform {
         self.connection.map_window(window).unwrap();
         self.connection.flush().unwrap();
 
-
-
         let xcb_handle = raw_window_handle::unix::XcbHandle {
             window: window.clone().into(),
             connection: self.connection.get_raw_xcb_connection(),
@@ -211,89 +334,5 @@ impl SurfaceBackend for XcbPlatform {
         let event_type = SurfaceEventType::Added(surface_info);
         let event = SurfaceEvent::from((id,event_type));
         self.pending_events.push(crate::definitions::Event::Surface(event));
-    }
-}
-
-
-impl PlatformBackend for XcbPlatform {
-    fn dispatch(&mut self) -> Vec<crate::definitions::Event> {
-        let mut events: Vec<crate::definitions::Event> = self.pending_events.drain(..).collect();
-
-        while let Ok(Some(event)) = self.connection.poll_for_event() {
-            match event {
-                Event::KeyPress(event) => {
-                    events.append(&mut handle_keyboard(
-                        &mut self.keystroke_decoder,
-                        0.into(),
-                        event.detail as u32,
-                    ));
-                }
-
-                Event::KeyRelease(event) => {
-                    events.append(&mut handle_keyboard(
-                        &mut self.keystroke_decoder,
-                        0.into(),
-                        event.detail as u32,
-                    ));
-                }
-                Event::ButtonPress(_event) => {
-                    /*
-                    let id = 0.into();
-                    let key;
-                    let state;
-                    let position;
-
-                    let event = SeatEventType::Cursor(CursorEvent::CursorButton {key,state,position});
-                    println!("{:#?}",event);
-                    */
-                }
-                Event::EnterNotify(event)=>{
-                    let id = 0.into();
-                    let surface_id = SurfaceId::from(event.event);
-                    let position = (event.event_x as f64,event.event_y as f64);
-                    let event_type = SeatEventType::Cursor(CursorEvent::CursorEntered {surface_id,position});
-                    let event = SeatEvent::from((id,event_type));
-                    events.push(crate::definitions::Event::Seat(event));
-                }
-                Event::LeaveNotify(event)=>{
-                    let id = 0.into();
-                    let surface_id = SurfaceId::from(event.event);
-                    let event_type = SeatEventType::Cursor(CursorEvent::CursorLeft {surface_id});
-                    let event = SeatEvent::from((id,event_type));
-                    events.push(crate::definitions::Event::Seat(event));
-                }
-                Event::ConfigureNotify(event) => {
-                    let id = SurfaceId::from(event.window);
-                     match event.response_type {
-                        22 => { //TODO Find equivalent constant
-                            let event_type = SurfaceEventType::Resized(Size::from((event.width as u32,event.height as u32)));
-                            let event = SurfaceEvent::from((id,event_type));
-                            events.push(crate::definitions::Event::Surface(event));
-                        }
-                        150 => { //TODO Find equivalent constant
-                            let event_type = SurfaceEventType::Moved(Position::from((event.x as u32,event.y as u32)));
-                            let event = SurfaceEvent::from((id,event_type));
-                            events.push(crate::definitions::Event::Surface(event));
-                        }
-                        _=>{}
-                    }
-                }
-                Event::DestroyNotify(event)=>{
-                    let id = SurfaceId::from(event.window);
-                    let event_type = SurfaceEventType::Removed;
-                    let event = SurfaceEvent::from((id,event_type));
-                    events.push(crate::definitions::Event::Surface(event));
-                }
-                Event::ClientMessage(event) => {
-                    let data = event.data.as_data32();
-                    if event.format == 32 && data[0] == self.wm_delete_window {
-                        self.connection.destroy_window(event.window).unwrap();
-                        self.connection.flush().unwrap();
-                    }
-                }
-                _ => {}
-            }
-        }
-        events
     }
 }

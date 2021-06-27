@@ -15,7 +15,7 @@ mod post_processing;
 #[cfg(feature="post_processing")]
 use post_processing::PostProcessing;
 
-use crate::definitions::{PlatformBackend,ExternalContext,Event,SeatBackend,SeatEvent,OutputBackend,OutputEvent,OutputId,SurfaceBackend,SurfaceEvent};
+use crate::definitions::*;
 
 pub(crate) mod virtual_platform;
 
@@ -51,27 +51,6 @@ impl Platform {
     }
 }
 
-impl SeatBackend for Platform {
-    fn set_keyboard_layout(&mut self, layout: String) {
-        #[cfg(feature="any_platform")]
-        self.backend.set_keyboard_layout(layout)
-    }
-}
-
-impl OutputBackend for Platform {
-}
-
-impl SurfaceBackend for Platform {
-    fn create_surface(
-        &mut self,
-        output: Option<OutputId>,
-    ){
-        #[cfg(feature="any_platform")]
-        self.backend.create_surface(output)
-    }
-
-}
-
 impl PlatformBackend for Platform {
     fn dispatch(&mut self) -> Vec<Event> {
         #[cfg(not(feature="any_platform"))]
@@ -87,5 +66,18 @@ impl PlatformBackend for Platform {
         self.state_tracker.update(&events);
 
         events
+    }
+    fn set_keyboard_layout(&mut self, layout: String) {
+        #[cfg(feature="any_platform")]
+        self.backend.set_keyboard_layout(layout)
+    }
+    fn set_cursor_mode(&mut self, seat_id: SeatId, mode: CursorMode){}
+    fn set_key_repeat(&mut self, seat_id: SeatId, value: bool){}
+    fn create_surface(
+        &mut self,
+        output: Option<OutputId>,
+    ){
+        #[cfg(feature="any_platform")]
+        self.backend.create_surface(output)
     }
 }

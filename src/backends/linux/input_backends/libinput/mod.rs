@@ -33,15 +33,14 @@ impl LibinputInterface for Interface {
     }
 }
 
-pub struct LibinputBackend<S> {
-    phantom: std::marker::PhantomData<S>,
+pub struct LibinputBackend {
     context: Libinput,
     keystroke_decoder: KeystrokeDecoder,
     seats: HashMap<*const input::ffi::libinput_seat, u32>,
     id_counter: u32,
 }
 
-impl<S> LibinputBackend<S> {
+impl LibinputBackend {
     pub fn new() -> Result<Self, ()> {
         let phantom = std::marker::PhantomData;
         let context = Libinput::new_with_udev(Interface);
@@ -56,10 +55,8 @@ impl<S> LibinputBackend<S> {
             id_counter,
         })
     }
-}
 
-impl<S> crate::definitions::InputBackend<S> for LibinputBackend<S> {
-    fn dispatch(&mut self) -> Vec<crate::definitions::Event<S>> {
+    fn dispatch(&mut self) -> Vec<crate::definitions::Event> {
         self.context.dispatch().unwrap();
         let mut events = Vec::new();
 
@@ -99,5 +96,3 @@ impl<S> crate::definitions::InputBackend<S> for LibinputBackend<S> {
         self.keystroke_decoder.set_layout(layout);
     }
 }
-
-

@@ -20,7 +20,7 @@ pub fn handle_pointer<S: 'static>(id: crate::definitions::SeatId, pointer: Main<
                 surface_x,
                 surface_y,
             } => {
-                let event = SeatEventType::Cursor(CursorEvent::CursorEntered {
+                let event = SeatEventType::Cursor(CursorEvent::Entered {
                     surface_id: surface.as_ref().id().into(),
                     position: (surface_x, surface_y),
                 });
@@ -28,7 +28,7 @@ pub fn handle_pointer<S: 'static>(id: crate::definitions::SeatId, pointer: Main<
             }
 
             wl_pointer::Event::Leave { serial: _, surface } => {
-                let event = SeatEventType::Cursor(CursorEvent::CursorLeft {
+                let event = SeatEventType::Cursor(CursorEvent::Left {
                     surface_id: surface.as_ref().id().into(),
                 });
                 dispatch_context.events.push(Event::Seat { id, event });
@@ -38,7 +38,7 @@ pub fn handle_pointer<S: 'static>(id: crate::definitions::SeatId, pointer: Main<
                 surface_x,
                 surface_y,
             } => {
-                let event = SeatEventType::Cursor(CursorEvent::CursorMoved {
+                let event = SeatEventType::Cursor(CursorEvent::Moved {
                     position: (surface_x, surface_y),
                 });
                 dispatch_context.events.push(Event::Seat { id, event });
@@ -61,7 +61,7 @@ pub fn handle_pointer<S: 'static>(id: crate::definitions::SeatId, pointer: Main<
                         keystroke_decoder::KeyDirection::Up => KeyState::Up,
                         keystroke_decoder::KeyDirection::Down => KeyState::Down,
                     };
-                    let event = SeatEventType::Cursor(CursorEvent::CursorButton { key, state });
+                    let event = SeatEventType::Cursor(CursorEvent::Button { key, state });
                     dispatch_context.events.push(Event::Seat { id, event });
                 }
             }
@@ -71,13 +71,13 @@ pub fn handle_pointer<S: 'static>(id: crate::definitions::SeatId, pointer: Main<
                 value,
             } => match axis {
                 Axis::VerticalScroll => {
-                    let event = SeatEventType::Cursor(CursorEvent::CursorAxis {
+                    let event = SeatEventType::Cursor(CursorEvent::Axis {
                         value: (value, 0.0),
                     });
                     dispatch_context.events.push(Event::Seat { id, event });
                 }
                 Axis::HorizontalScroll => {
-                    let event = SeatEventType::Cursor(CursorEvent::CursorAxis {
+                    let event = SeatEventType::Cursor(CursorEvent::Axis {
                         value: (0.0, value),
                     });
                     dispatch_context.events.push(Event::Seat { id, event });

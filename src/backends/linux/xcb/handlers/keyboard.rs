@@ -1,6 +1,6 @@
 use crate::backends::linux::keysym_to_w3c_keycode;
 use keystroke_decoder::KeystrokeDecoder;
-use crate::definitions::{Event,SeatEventType,SeatEvent,KeyboardEvent};
+use crate::definitions::{Event,SeatEventType,SeatEvent,KeyboardEvent,State};
 
 pub fn handle_keyboard(
     keystroke_decoder: &mut KeystrokeDecoder,
@@ -16,10 +16,12 @@ pub fn handle_keyboard(
         } else {
             continue;
         };
-        let event_type = match direction {
-            keystroke_decoder::KeyDirection::Up => SeatEventType::Keyboard(KeyboardEvent::KeyRelease{key}),
-            keystroke_decoder::KeyDirection::Down => SeatEventType::Keyboard(KeyboardEvent::KeyPress{key}),
+        let state = match direction {
+            keystroke_decoder::KeyDirection::Up => State::Up,
+            keystroke_decoder::KeyDirection::Down => State::Down,
         };
+
+        let event_type = SeatEventType::Keyboard(KeyboardEvent::Key{key,state});
         let event = SeatEvent::from((id,event_type));
         events.push(Event::Seat(event));
     }

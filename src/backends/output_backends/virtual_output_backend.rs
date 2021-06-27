@@ -10,12 +10,21 @@ struct Output {
     pub size: Size
 }
 
-pub struct VirtualOutputBackend {
+impl Output {
+/*
+    pub fn contains(&self,position: Position){
+        position.x < self.position.x+self.size.width &&
+        position.y < self.position.y+self.size.height
+    }
+    */
+}
+
+pub struct OutputManager {
     outputs: HashMap<OutputId,Output>,
     output_stack: Vec<OutputId>
 }
 
-impl VirtualOutputBackend {
+impl OutputManager {
     pub fn new()->Self {
         let outputs = HashMap::new();
         let output_stack = Vec::new();
@@ -57,10 +66,17 @@ impl VirtualOutputBackend {
         else {println!("Warning: invalid index requested");}
         events
     }
+/*
+    pub fn apply_constraint(&self,current_position: Position,new_position: Position)->Position {
+        let output = self.output_stack.map(|output_id|self.outputs.get(output_id).unwrap()).find(|output|{
+            output.contains()
+        }).unwrap();
+    }
 
+    pub fn virtual_size(&self){
 
-    //pub fn virtual_size(&self){}
-
+    }
+*/
     fn update_outputs_from(&mut self,output: (usize,Output))->Vec<(OutputId,OutputEventType)> {
         let (index,output) = output;
         let mut events = Vec::new();

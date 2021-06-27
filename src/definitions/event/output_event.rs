@@ -48,6 +48,12 @@ impl From<(u32,u32)> for Position {
 }
 
 #[derive(Debug,Copy,Clone,PartialEq)]
+pub struct Offset{pub x: f32,pub y: f32}
+impl From<(f32,f32)> for Offset {
+    fn from(offset: (f32,f32))->Self {Self{x: offset.0,y: offset.1}}
+}
+
+#[derive(Debug,Copy,Clone,PartialEq)]
 pub struct Size{pub width: u32,pub height: u32}
 impl From<(u32,u32)> for Size {
     fn from(size: (u32,u32))->Self {Self{width: size.0,height: size.1}}

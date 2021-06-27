@@ -13,12 +13,12 @@ impl From<(SurfaceId,SurfaceEventType)> for SurfaceEvent {
 #[derive(Clone,Debug,PartialEq)]
 pub enum SurfaceEventType {
     Added(SurfaceInfo),
+    Removed,
+
     Moved(Position),
     Resized(Size),
     Focused(bool),
-    ModeChanged(Option<SurfaceMode>),
-    TilingChanged(Option<SurfaceTiling>),
-    Removed,
+    ModeChanged(SurfaceMode)
 }
 
 #[derive(Debug, PartialEq, Hash, Copy, Clone)]
@@ -69,21 +69,9 @@ bitflags::bitflags! {
         const MINIMIZED = (1 << 0);
         const MAXIMIZED = (1 << 1);
         const FULLSCREEN = (1 << 2);
+        const TILING_LEFT = (1 << 3);
+        const TILING_RIGHT = (1 << 4);
+        const TILING_TOP = (1 << 5);
+        const TILING_BOTTOM = (1 << 6);
     }
-}
-
-#[derive(Clone,Debug,PartialEq)]
-pub enum SurfaceTiling {
-    TiledLeft,
-    TiledRight,
-    TiledTop,
-    TiledBottom,
-}
-
-#[derive(Clone,Debug,PartialEq)]
-pub struct SurfaceCapabilities {
-    supported_modes: Vec<SurfaceMode>,
-    can_resize: bool,
-    can_move: bool,
-    is_monitor_indipendent: bool,
 }

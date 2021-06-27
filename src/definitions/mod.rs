@@ -1,29 +1,29 @@
 mod event;
 pub use event::*;
 
-pub trait PlatformBackend: SeatBackend + OutputBackend + SurfaceBackend {
-    fn dispatch(&mut self) -> Vec<Event> {
-        let mut events: Vec<Event> = self.dispatch_seats().into_iter().map(|event|Event::from(event)).collect();
-        events.append(&mut self.dispatch_outputs().into_iter().map(|event|Event::from(event)).collect());
-        events.append(&mut self.dispatch_surfaces().into_iter().map(|event|Event::from(event)).collect());
-        events
-    }
+pub trait PlatformBackend {
+    fn dispatch(&mut self) -> Vec<Event>;
+    fn set_keyboard_layout(&mut self, layout: String);
+    fn set_key_repeat(&mut self, seat_id: SeatId, value: bool);
+    fn set_cursor_mode(&mut self, seat_id: SeatId, mode: CursorMode);
+
+    fn create_surface(&mut self, output: Option<OutputId>);
 }
 
+/*
 pub trait SeatBackend {
-    fn dispatch_seats(&mut self) -> Vec<SeatEvent> {Vec::new()}
-    fn set_keyboard_layout(&mut self, layout: String);
+
 }
 
 pub trait OutputBackend {
-    fn dispatch_outputs(&mut self) -> Vec<OutputEvent> {Vec::new()}
+
 }
 
 pub trait SurfaceBackend {
     fn dispatch_surfaces(&mut self) -> Vec<SurfaceEvent> {Vec::new()}
-    fn create_surface(&mut self, output: Option<OutputId>);
-}
 
+}
+*/
 #[derive(Debug)]
 pub enum ExternalContext {
     Raw

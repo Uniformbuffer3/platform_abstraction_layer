@@ -14,7 +14,7 @@ pub fn handle_pointer<S>(
     //let keystrokes = keystroke_decoder.decode(event.key());
     match event {
         pointer::PointerEvent::Motion(motion_event) => {
-            let event = SeatEventType::Cursor(CursorEvent::CursorMoved {
+            let event = SeatEventType::Cursor(CursorEvent::Moved {
                 position: (motion_event.dx(), motion_event.dy()),
             });
             events.push(Event::Seat { id, event });
@@ -34,12 +34,12 @@ pub fn handle_pointer<S>(
                     keystroke_decoder::KeyDirection::Up => KeyState::Up,
                     keystroke_decoder::KeyDirection::Down => KeyState::Down,
                 };
-                let event = SeatEventType::Cursor(CursorEvent::CursorButton { key, state });
+                let event = SeatEventType::Cursor(CursorEvent::Button { key, state });
                 events.push(Event::Seat { id, event });
             }
         }
         pointer::PointerEvent::Axis(axis_event) => {
-            let event = SeatEventType::Cursor(CursorEvent::CursorAxis {
+            let event = SeatEventType::Cursor(CursorEvent::Axis {
                 value: (
                     axis_event.axis_value(Axis::Horizontal),
                     axis_event.axis_value(Axis::Vertical),
