@@ -9,7 +9,7 @@ pub fn handle_pointer<S>(
     keystroke_decoder: &mut KeystrokeDecoder,
     id: crate::definitions::SeatId,
     event: pointer::PointerEvent,
-) -> Vec<crate::definitions::Event<S>> {
+) -> Vec<crate::definitions::Event> {
     let mut events = Vec::new();
     //let keystrokes = keystroke_decoder.decode(event.key());
     match event {
@@ -17,6 +17,7 @@ pub fn handle_pointer<S>(
             let event = SeatEventType::Cursor(CursorEvent::Moved {
                 position: (motion_event.dx(), motion_event.dy()),
             });
+
             events.push(Event::Seat { id, event });
         }
 

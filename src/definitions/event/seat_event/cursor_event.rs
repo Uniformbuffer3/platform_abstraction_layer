@@ -1,6 +1,6 @@
 use keyboard_types::KeyState as State;
 
-use crate::definitions::{SurfaceId,Position,Offset};
+use crate::definitions::{SurfaceId,Position,Offset,CursorMode};
 
 #[derive(Clone,Debug,PartialEq)]
 pub enum CursorEvent {
@@ -30,21 +30,15 @@ pub enum CursorEvent {
     VisibilityChanged(bool)
 }
 
-#[derive(Clone,Debug,PartialEq)]
+#[derive(Clone,Copy,Debug,PartialEq)]
 pub enum Button {
     Left,
     Right,
     Middle,
 }
 
-#[derive(Clone,Debug,PartialEq)]
-pub enum CursorMode {
-    Absolute,
-    Relative
-}
-
-#[derive(Clone,Debug,PartialEq)]
+#[derive(Clone,Copy,Debug,PartialEq)]
 pub struct CursorInfo {
-    mode: CursorMode,
-    visible: bool
+    pub mode: CursorMode,
+    pub visible: bool
 }

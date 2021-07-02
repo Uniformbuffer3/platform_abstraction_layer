@@ -16,6 +16,7 @@ keyboard-types = {version="*",default-features=false}
 wgpu = {version = "*",optional=true}
 libc = {version = "*",optional=true}
 vulkano = {version = "*",optional=true}
+vulkano-shaders = {version = "*",optional=true}
 parry2d = {version = "*",optional=true}
 
 
@@ -30,7 +31,7 @@ x11rb = {version = "*", features=["randr","allow-unsafe-code"],default-features=
 
 
 [features]
-default = ["xcb_platform","post_processing","state_tracker","virtual_platform"]
+default = ["xcb_platform","post_processing","state_tracker","virtual_platform","parry2d","libinput_backend"]
 wayland_platform = ["smithay-client-toolkit","linux_platform"]
 xcb_platform = ["x11rb","linux_platform"]
 libinput_vulkano_platform = ["libinput_backend","vulkano_backend"]

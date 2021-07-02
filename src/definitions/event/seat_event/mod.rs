@@ -1,11 +1,11 @@
 mod cursor_event;
-pub use cursor_event::{Button, CursorEvent, CursorMode};
+pub use cursor_event::*;
 mod touch_event;
-pub use touch_event::TouchEvent;
+pub use touch_event::*;
 mod keyboard_event;
-pub use keyboard_event::{KeyboardEvent,Key,State};
+pub use keyboard_event::*;
 mod gamepad_event;
-pub use gamepad_event::{GamepadEvent};
+pub use gamepad_event::*;
 
 #[derive(Clone,Debug,PartialEq)]
 pub struct SeatEvent {
@@ -58,7 +58,4 @@ impl Eq for SeatId {}
 pub struct SeatInfo {
     pub id: SeatId,
     pub name: String,
-    pub has_pointer: bool,
-    pub has_keyboard: bool,
-    pub has_touch: bool,
 }

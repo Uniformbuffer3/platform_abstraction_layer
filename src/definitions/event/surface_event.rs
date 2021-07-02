@@ -1,5 +1,6 @@
 use raw_window_handle::RawWindowHandle;
-use super::{Position,Size};
+
+use crate::definitions::{Position,Size,OutputId};
 
 #[derive(Clone,Debug,PartialEq)]
 pub struct SurfaceEvent {
@@ -14,6 +15,9 @@ impl From<(SurfaceId,SurfaceEventType)> for SurfaceEvent {
 pub enum SurfaceEventType {
     Added(SurfaceInfo),
     Removed,
+
+    Entered(OutputId),
+    Left(OutputId),
 
     Moved(Position),
     Resized(Size),

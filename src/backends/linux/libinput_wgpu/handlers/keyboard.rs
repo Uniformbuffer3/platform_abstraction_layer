@@ -9,7 +9,7 @@ pub fn handle_keyboard<S>(
     keystroke_decoder: &mut KeystrokeDecoder,
     id: crate::definitions::SeatId,
     event: keyboard::KeyboardEvent,
-) -> Vec<crate::definitions::Event<S>> {
+) -> Vec<crate::definitions::Event> {
     let mut events = Vec::new();
     let keystrokes = keystroke_decoder.decode(event.key());
     for (keysym, direction) in keystrokes.as_keysyms() {
@@ -18,13 +18,14 @@ pub fn handle_keyboard<S>(
         } else {
             continue;
         };
-
-        let event = match direction {
-            keystroke_decoder::KeyDirection::Up => SeatEventType::Keyboard(KeyboardEvent::KeyRelease{key}),
-            keystroke_decoder::KeyDirection::Down => SeatEventType::Keyboard(KeyboardEvent::KeyPress{key}),
+        let state = match direction {
+            keystroke_decoder::KeyDirection::Up => State::Up,
+            keystroke_decoder::KeyDirection::Down => State::Down,
         };
 
-        events.push(Event::Seat { id, event });
+        let event_type = SeatEventType::Keyboard(KeyboardEvent::Key{key,state});
+        let event = SeatEvent::from((id,event_type));
+        events.push(Event::Seat(event));
     }
     events
 }

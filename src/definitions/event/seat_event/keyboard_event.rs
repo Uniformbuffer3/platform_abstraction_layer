@@ -14,8 +14,8 @@ pub enum KeyboardEvent {
 
 #[derive(Clone,Debug,PartialEq)]
 pub struct KeyboardInfo {
-    layout: String,
-    autorepeat: bool
+    pub layout: String,
+    pub autorepeat: bool
 }
 
 /*

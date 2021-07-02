@@ -11,16 +11,17 @@ use std::collections::HashMap;
 #[test]
 fn create_window() {
     use crate::Platform;
-    use crate::definitions::{PlatformBackend,Event,SurfaceBackend,SurfaceEventType,OutputEventType,ExternalContext};
+    use crate::definitions::*;
     let mut platform = Platform::new(ExternalContext::Raw);
 
+    let mut initial_requests = Vec::new();
 
     let initial_events = platform.dispatch();
     for event in &initial_events {
         match event {
             Event::Output(event)=>{
                 if let OutputEventType::Added(_) = event.event_type {
-                    platform.create_surface(Some(event.id));
+                    initial_requests.push(SurfaceRequest::Create(Some(event.id)).into());
                 }
             },
             _=>{}
@@ -28,6 +29,7 @@ fn create_window() {
 
     }
     println!("{:#?}", initial_events);
+    platform.request(initial_requests);
 
     let mut surfaces = HashMap::new();
     'main_loop: loop {
@@ -60,7 +62,7 @@ fn create_window() {
 #[test]
 fn virtual_output_backend(){
     use crate::definitions::*;
-    use crate::backends::output_backends::OutputManager;
+    use crate::backends::partial_backends::output_manager::OutputManager;
     let mut output_manager = OutputManager::new();
 
     println!("Adding output 1");

@@ -1,5 +1,4 @@
 use vulkano::swapchain::Surface;
-use crate::definitions::GraphicBackend;
 use crate::contexts::{SurfaceContext,ExternalContext};
 
 pub struct VulkanoBackend<S> {

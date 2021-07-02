@@ -1,38 +1,29 @@
 mod event;
 pub use event::*;
 
+mod request;
+pub use request::*;
+
+mod common;
+pub use common::*;
+
+mod errors;
+pub use errors::*;
+
 pub trait PlatformBackend {
+    fn platform_type(&self)->PlatformType;
     fn dispatch(&mut self) -> Vec<Event>;
-    fn set_keyboard_layout(&mut self, layout: String);
-    fn set_key_repeat(&mut self, seat_id: SeatId, value: bool);
-    fn set_cursor_mode(&mut self, seat_id: SeatId, mode: CursorMode);
-
-    fn create_surface(&mut self, output: Option<OutputId>);
+    fn request(&mut self, requests: Vec<Request>);
 }
 
-/*
-pub trait SeatBackend {
-
+pub enum PlatformType {
+    Compositor,
+    Direct
 }
 
-pub trait OutputBackend {
-
-}
-
-pub trait SurfaceBackend {
-    fn dispatch_surfaces(&mut self) -> Vec<SurfaceEvent> {Vec::new()}
-
-}
-*/
 #[derive(Debug)]
 pub enum ExternalContext {
     Raw
-}
-
-#[derive(Debug)]
-pub enum CreateSurfaceError {
-    TooManySurfaces,
-    InvalidOutputId,
 }
 
 #[derive(Debug)]

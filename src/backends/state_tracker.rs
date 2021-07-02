@@ -64,7 +64,6 @@ impl StateTracker {
                         _=>{}
                     }
                 }
-                _=>{}
             }
         })
     }

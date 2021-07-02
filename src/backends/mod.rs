@@ -1,6 +1,4 @@
-pub mod graphic_backends;
-pub mod input_backends;
-pub mod output_backends;
+pub mod partial_backends;
 
 #[cfg(all(target_os = "linux",feature="linux_platform"))]
 mod linux;
@@ -16,8 +14,6 @@ mod post_processing;
 use post_processing::PostProcessing;
 
 use crate::definitions::*;
-
-pub(crate) mod virtual_platform;
 
 pub struct Platform {
     #[cfg(all(target_os = "linux",feature="linux_platform"))]
@@ -52,6 +48,7 @@ impl Platform {
 }
 
 impl PlatformBackend for Platform {
+    fn platform_type(&self)->PlatformType {PlatformType::Compositor}
     fn dispatch(&mut self) -> Vec<Event> {
         #[cfg(not(feature="any_platform"))]
         let events = Vec::new();
@@ -67,17 +64,17 @@ impl PlatformBackend for Platform {
 
         events
     }
-    fn set_keyboard_layout(&mut self, layout: String) {
+    fn request(&mut self, requests: Vec<Request>) {self.backend.request(requests);}
+    /*
+    fn set_keyboard_layout(&mut self, layout: String)->Result<(),KeyboardLayoutError>{
         #[cfg(feature="any_platform")]
         self.backend.set_keyboard_layout(layout)
     }
-    fn set_cursor_mode(&mut self, seat_id: SeatId, mode: CursorMode){}
-    fn set_key_repeat(&mut self, seat_id: SeatId, value: bool){}
-    fn create_surface(
-        &mut self,
-        output: Option<OutputId>,
-    ){
+    fn set_key_repeat(&mut self, _seat_id: SeatId, _value: bool)->Result<(),KeyRepeatError>{Err(KeyRepeatError::Unsupported)}
+    fn set_cursor_mode(&mut self, _seat_id: SeatId, _mode: CursorMode)->Result<(),CursorModeError>{Err(CursorModeError::Unsupported)}
+    fn create_surface(&mut self,output: Option<OutputId>)->Result<(),SurfaceError>{
         #[cfg(feature="any_platform")]
         self.backend.create_surface(output)
     }
+    */
 }
