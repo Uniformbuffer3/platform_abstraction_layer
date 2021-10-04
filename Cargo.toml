@@ -24,7 +24,7 @@ parry2d = {version = "*",optional=true}
 env_logger = "*"
 
 [target.'cfg(target_os="linux")'.dependencies]
-keystroke_decoder = {path="../keystroke_decoder",optional=true}
+keystroke_decoder = {git="https://github.com/Uniformbuffer3/keystroke_decoder.git",optional=true}
 input = {version = "*",features=["udev"],optional=true}
 smithay-client-toolkit = {version="*",optional=true}
 x11rb = {version = "*", features=["randr","xinput","allow-unsafe-code"],default-features=false,optional=true}
