@@ -19,7 +19,7 @@ impl<S> GraphicBackend for LibinputVulkanoPlatform<S> {
 }
 
 impl<S> InputBackend<S> for LibinputVulkanoPlatform<S> {
-    fn dispatch(&mut self) -> Vec<crate::definitions::Event<S>> {
+    fn events(&mut self) -> Vec<crate::definitions::Event<S>> {
         Vec::new()
     }
     fn set_keyboard_layout(&mut self, layout: String) {

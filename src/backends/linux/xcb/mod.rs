@@ -13,8 +13,6 @@ use x11rb::xcb_ffi::XCBConnection;
 use x11rb::wrapper::ConnectionExt as WrapperConnectionExt;
 use x11rb::protocol::xproto::ConnectionExt as XProtoConnectionExt;
 
-use raw_window_handle::RawWindowHandle;
-
 pub struct XcbPlatform {
     keystroke_decoder: KeystrokeDecoder,
     connection: Arc<XCBConnection>,
@@ -23,9 +21,10 @@ pub struct XcbPlatform {
     wm_protocols: u32,
     wm_delete_window: u32,
     pending_events: Vec<crate::definitions::Event>,
+    external_contexts: Vec<Box<dyn ExternalContext>>
 }
 impl XcbPlatform {
-    pub fn new() -> Result<Self, ()> {
+    pub fn new(external_contexts: Vec<Box<dyn ExternalContext>>) -> Result<Self, ()> {
         let (connection, preferred_screen) = XCBConnection::connect(None).unwrap();
         let connection = Arc::new(connection);
         let wm_protocols = connection.intern_atom(false, b"WM_PROTOCOLS").unwrap().reply().unwrap().atom;
@@ -54,6 +53,10 @@ impl XcbPlatform {
             .unwrap();
 
         let pending_events = Vec::new();
+
+        //let mut external_contexts = Vec::new();
+        //for context in contexts {external_contexts.push(Box::new(&context as &dyn ExternalContext));}
+
         let mut platform = Self {
             keystroke_decoder,
             connection,
@@ -61,14 +64,34 @@ impl XcbPlatform {
             dummy_window,
             wm_protocols,
             wm_delete_window,
-            pending_events
+            pending_events,
+            external_contexts,
         };
 
+        platform.init_seats();
         platform.detect_monitors();
         //platform.set_cursor_mode(0u32.into(),CursorMode::Absolute).unwrap();
         //platform.set_key_repeat(0u32.into(),true).unwrap();
 
         Ok(platform)
+    }
+
+    fn init_seats(&mut self){
+        let id = 0u32.into();
+        let name = String::from("seat-0");
+        let event_type = SeatEventType::Added(SeatInfo {id,name});
+        let event = SeatEvent::from((id,event_type));
+        self.pending_events.push(crate::definitions::Event::Seat(event));
+
+        let keyboard_info = KeyboardInfo {
+            layout: self.keystroke_decoder.layout().clone(),
+            autorepeat: true,
+            encoding: KeyEncoding::XkbV1
+        };
+        let keyboard_event = KeyboardEvent::Added(keyboard_info);
+        let event_type = SeatEventType::Keyboard(keyboard_event);
+        let event = SeatEvent::from((id,event_type));
+        self.pending_events.push(crate::definitions::Event::Seat(event));
     }
 
     fn detect_monitors(&mut self){
@@ -128,7 +151,7 @@ impl XcbPlatform {
 
 impl PlatformBackend for XcbPlatform {
     fn platform_type(&self)->PlatformType {PlatformType::Compositor}
-    fn dispatch(&mut self) -> Vec<crate::definitions::Event> {
+    fn events(&mut self) -> Vec<crate::definitions::Event> {
         let mut events: Vec<crate::definitions::Event> = self.pending_events.drain(..).collect();
 
         while let Ok(Some(event)) = self.connection.poll_for_event() {
@@ -164,8 +187,6 @@ impl PlatformBackend for XcbPlatform {
                 }
                 Event::ButtonRelease(event) => {
                     let id = 0u32.into();
-                    //let surface_id = SurfaceId::from(event.event);
-                    //let position = Position::from((event.event_x as u32,event.event_y as u32));
                     let key = match event.detail {
                         1 => crate::definitions::Button::Left,
                         2 => crate::definitions::Button::Middle,
@@ -194,7 +215,6 @@ impl PlatformBackend for XcbPlatform {
                 }
                 Event::MotionNotify(event)=>{
                     let id = 0.into();
-                    //let surface_id = SurfaceId::from(event.event);
                     let position = Position::from((event.event_x as u32,event.event_y as u32));
                     let event_type = SeatEventType::Cursor(CursorEvent::AbsoluteMovement{position});
                     let event = SeatEvent::from((id,event_type));
@@ -223,6 +243,14 @@ impl PlatformBackend for XcbPlatform {
                         self.connection.flush().unwrap();
                     }
                 }
+                Event::XinputChangeDeviceNotify(event)=>{
+                    println!("{:#?}",event);
+                }
+                /*
+                Event::PropertyNotify(event)=>{
+                    println!("{:#?}",&event);
+                }
+                */
                 _ => {}
             }
         }
@@ -338,9 +366,15 @@ impl PlatformBackend for XcbPlatform {
                                 connection: self.connection.get_raw_xcb_connection(),
                                 ..raw_window_handle::unix::XcbHandle::empty()
                             };
-                            let raw_window_handle = RawWindowHandle::Xcb(xcb_handle);
 
-                            let surface = Surface::Raw(raw_window_handle);
+                            let raw_surface_handle = RawSurfaceHandle::Xcb(xcb_handle);
+
+                            let surface = match self.external_contexts.iter().find_map(|context|context.create_surface(&raw_surface_handle).ok()){
+                                Some(surface)=>surface,
+                                None=>{
+                                    unimplemented!();
+                                }
+                            };
 
                             let id = window.into();
                             let position = Position{x,y};

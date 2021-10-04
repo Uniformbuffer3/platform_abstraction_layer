@@ -5,7 +5,8 @@ pub enum KeyboardEvent {
     Added(KeyboardInfo),
     Removed,
     Key{
-        key: Key,
+        code: u32,
+        key: Option<Key>,
         state: State
     },
     AutoRepeat(bool),
@@ -15,7 +16,13 @@ pub enum KeyboardEvent {
 #[derive(Clone,Debug,PartialEq)]
 pub struct KeyboardInfo {
     pub layout: String,
-    pub autorepeat: bool
+    pub autorepeat: bool,
+    pub encoding: KeyEncoding
+}
+
+#[derive(Clone,Debug,PartialEq)]
+pub enum KeyEncoding {
+    XkbV1
 }
 
 /*

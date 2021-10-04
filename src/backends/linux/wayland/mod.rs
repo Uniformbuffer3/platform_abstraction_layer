@@ -194,9 +194,9 @@ impl<S: 'static> WaylandPlatform<S> {
 }
 
 impl<S> crate::definitions::InputBackend<S> for WaylandPlatform<S> {
-    fn dispatch(&mut self) -> Vec<Event<S>> {
+    fn events(&mut self) -> Vec<Event<S>> {
         self.event_queue
-            .dispatch(&mut (), |raw_event, anonymus_object, _dispatch_data| {
+            .events(&mut (), |raw_event, anonymus_object, _events_data| {
                 panic!(
                     "Unhandled event received:\n{:#?}\n{:#?}",
                     raw_event, anonymus_object

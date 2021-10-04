@@ -26,9 +26,9 @@ pub struct Platform {
     post_processing: PostProcessing
 }
 impl Platform {
-    pub fn new(context: ExternalContext) -> Self {
+    pub fn new(external_contexts: Vec<Box<dyn ExternalContext>>) -> Self {
         #[cfg(all(target_os = "linux",feature="linux_platform"))]
-        let backend = linux::LinuxPlatform::new(context).unwrap();
+        let backend = linux::LinuxPlatform::new(external_contexts).unwrap();
 
         #[cfg(feature="state_tracker")]
         let state_tracker = StateTracker::new();
@@ -49,12 +49,12 @@ impl Platform {
 
 impl PlatformBackend for Platform {
     fn platform_type(&self)->PlatformType {PlatformType::Compositor}
-    fn dispatch(&mut self) -> Vec<Event> {
+    fn events(&mut self) -> Vec<Event> {
         #[cfg(not(feature="any_platform"))]
         let events = Vec::new();
 
         #[cfg(feature="any_platform")]
-        let events = self.backend.dispatch();
+        let events = self.backend.events();
 
         #[cfg(feature="post_processing")]
         let events = self.post_processing.process(events);

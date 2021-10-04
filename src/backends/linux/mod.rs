@@ -15,6 +15,7 @@ mod libinput_vulkano;
 //#[cfg(feature = "libinput_vulkano_platform")]
 //use libinput_vulkano::LibinputVulkanoPlatform;
 
+#[cfg(feature = "libinput_wgpu_platform")]
 mod libinput_wgpu;
 
 mod common;
@@ -30,7 +31,7 @@ pub enum LinuxPlatform {
     Xcb(XcbPlatform),
 }
 impl LinuxPlatform {
-    pub fn new(_context: ExternalContext) -> Option<Self> {
+    pub fn new(external_contexts: Vec<Box<dyn ExternalContext>>) -> Option<Self> {
         #[cfg(feature = "wayland_platform")]
         match WaylandPlatform::new() {
             Ok(platform) => return Some(Self::Wayland(platform)),
@@ -38,7 +39,7 @@ impl LinuxPlatform {
         }
 
         #[cfg(feature = "xcb_platform")]
-        match XcbPlatform::new() {
+        match XcbPlatform::new(external_contexts) {
             Ok(platform) => return Some(Self::Xcb(platform)),
             Err(err) => info!("Failed to init wayland platform: {:#?}",err),
         }
@@ -48,12 +49,12 @@ impl LinuxPlatform {
 
 impl crate::definitions::PlatformBackend for LinuxPlatform {
     fn platform_type(&self)->PlatformType {PlatformType::Compositor}
-    fn dispatch(&mut self) -> Vec<crate::definitions::Event> {
+    fn events(&mut self) -> Vec<crate::definitions::Event> {
         match self {
             #[cfg(feature = "wayland_platform")]
-            Self::Wayland(platform) => platform.dispatch(),
+            Self::Wayland(platform) => platform.events(),
             #[cfg(feature = "xcb_platform")]
-            Self::Xcb(platform) => platform.dispatch(),
+            Self::Xcb(platform) => platform.events(),
         }
     }
     fn request(&mut self, requests: Vec<Request>) {

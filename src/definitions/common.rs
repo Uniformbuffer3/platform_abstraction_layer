@@ -28,6 +28,9 @@ pub struct Size{pub width: u32,pub height: u32}
 impl From<(u32,u32)> for Size {
     fn from(size: (u32,u32))->Self {Self{width: size.0,height: size.1}}
 }
+impl From<Size> for (u32,u32) {
+    fn from(size: Size)->Self {(size.width,size.height)}
+}
 impl From<[u32; 2]> for Size {
     fn from(size: [u32; 2])->Self {Self{width: size[0],height: size[1]}}
 }

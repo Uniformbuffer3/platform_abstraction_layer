@@ -16,8 +16,8 @@ impl LibinputBackend {
         }
     }
 
-    pub fn dispatch(&mut self) -> Vec<input::event::Event> {
-        self.context.dispatch().unwrap();
+    pub fn events(&mut self) -> Vec<input::event::Event> {
+        self.context.events().unwrap();
         let mut events = Vec::new();
         while let Some(event) = self.context.next() {events.push(event);}
         events

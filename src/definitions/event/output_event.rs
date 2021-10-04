@@ -18,7 +18,7 @@ pub enum OutputEventType {
     Removed
 }
 
-#[derive(Debug, PartialEq, Hash, Copy, Clone)]
+#[derive(Debug, PartialEq, Hash, Copy, Clone,Eq,Ord,PartialOrd)]
 pub struct OutputId(u32);
 impl Into<u32> for OutputId {
     fn into(self) -> u32 {
@@ -40,7 +40,11 @@ impl From<usize> for OutputId {
         Self(id as u32)
     }
 }
-impl Eq for OutputId {}
+impl std::fmt::Display for OutputId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 
 #[derive(Debug, Clone,PartialEq)]

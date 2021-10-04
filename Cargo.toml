@@ -13,7 +13,7 @@ log = "*"
 petgraph = "*"
 simple-matrix = "*"
 keyboard-types = {version="*",default-features=false}
-wgpu = {version = "*",optional=true}
+wgpu = {git="https://github.com/Uniformbuffer3/wgpu",branch="external_memory_direct_display",optional=true}
 libc = {version = "*",optional=true}
 vulkano = {version = "*",optional=true}
 vulkano-shaders = {version = "*",optional=true}
@@ -27,23 +27,28 @@ env_logger = "*"
 keystroke_decoder = {path="../keystroke_decoder",optional=true}
 input = {version = "*",features=["udev"],optional=true}
 smithay-client-toolkit = {version="*",optional=true}
-x11rb = {version = "*", features=["randr","allow-unsafe-code"],default-features=false,optional=true}
+x11rb = {version = "*", features=["randr","xinput","allow-unsafe-code"],default-features=false,optional=true}
 
 
 [features]
-default = ["xcb_platform","post_processing","state_tracker","virtual_platform","parry2d","libinput_backend"]
+default = ["xcb_platform","parry2d","wgpu_backend"]
+
+#Platforms
 wayland_platform = ["smithay-client-toolkit","linux_platform"]
 xcb_platform = ["x11rb","linux_platform"]
 libinput_vulkano_platform = ["libinput_backend","vulkano_backend"]
 
+#Platform utils
 any_platform = []
 linux_platform = ["keystroke_decoder","any_platform"]
 virtual_platform = ["parry2d"]
 
+#Backends
 libinput_backend = ["input","keystroke_decoder","libc"]
 vulkano_backend = ["vulkano"]
+wgpu_backend = ["wgpu"]
 
-external_context = []
 
+#Utils
 state_tracker = []
 post_processing = []

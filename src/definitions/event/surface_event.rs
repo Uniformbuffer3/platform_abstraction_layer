@@ -1,6 +1,7 @@
 use raw_window_handle::RawWindowHandle;
 
 use crate::definitions::{Position,Size,OutputId};
+use std::sync::Arc;
 
 #[derive(Clone,Debug,PartialEq)]
 pub struct SurfaceEvent {
@@ -40,6 +41,11 @@ impl From<u32> for SurfaceId {
         Self(hash)
     }
 }
+impl From<SurfaceId> for u32 {
+    fn from(id: SurfaceId) -> Self {
+        id.0
+    }
+}
 impl Eq for SurfaceId {}
 
 #[derive(Debug, Clone, PartialEq)]
@@ -49,9 +55,20 @@ pub struct SurfaceInfo {
     pub surface: Surface
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Surface {
-    Raw(RawWindowHandle)
+    Raw(RawWindowHandle),
+    #[cfg(feature="wgpu_backend")]
+    WGpu(Arc<wgpu::Surface>)
+}
+impl PartialEq for Surface {
+    fn eq(&self, other: &Self) -> bool {
+        match (self,other) {
+            (Self::Raw(raw1),Self::Raw(raw2))=>raw1 == raw2,
+            (Self::WGpu(raw1),Self::WGpu(raw2))=>Arc::ptr_eq(raw1,raw2),
+            _=>false
+        }
+    }
 }
 
 /*

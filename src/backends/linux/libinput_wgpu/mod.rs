@@ -1,4 +1,4 @@
-use crate::backends::partial_backends::output_manager::OutputManager;
+use crate::backends::partial_backends::output_manager::OutputConstraintKeeper;
 use crate::backends::partial_backends::surface_manager::SurfaceManager;
 use crate::definitions::*;
 
@@ -57,7 +57,7 @@ struct Seat {
 }
 
 pub struct LibinputWGpuPlatform {
-    output_manager: OutputManager,
+    //output_manager: OutputConstraintKeeper,
     surface_manager: SurfaceManager,
     libinput: Libinput,
     keystroke_decoder: KeystrokeDecoder,
@@ -66,20 +66,21 @@ pub struct LibinputWGpuPlatform {
 }
 impl LibinputWGpuPlatform{
     pub fn new()->Self {
-        let output_manager = OutputManager::new();
+        //let output_manager = OutputConstraintKeeper::new();
         let surface_manager = SurfaceManager::new();
         let libinput = Libinput::new_with_udev(Interface);
         let keystroke_decoder = KeystrokeDecoder::new();
         let seats = HashMap::new();
         let id_counter = 0;
-        Self {output_manager,surface_manager,libinput,keystroke_decoder,id_counter,seats}
+        Self {//output_manager,
+        surface_manager,libinput,keystroke_decoder,id_counter,seats}
     }
 }
 
 impl PlatformBackend for LibinputWGpuPlatform {
     fn platform_type(&self)->PlatformType {PlatformType::Direct}
-    fn dispatch(&mut self) -> Vec<Event> {
-        match self.libinput.dispatch(){
+    fn events(&mut self) -> Vec<Event> {
+        match self.libinput.events(){
             Ok(_)=>(),
             Err(_)=>()
         }
@@ -192,19 +193,17 @@ impl PlatformBackend for LibinputWGpuPlatform {
                 },
                 LibinputEvent::Keyboard(keyboard_event) => {
                     if let Some(seat) = self.seats.get(&raw_seat.as_raw()){
-                        let keystrokes = self.keystroke_decoder.decode(keyboard_event.key());
+                        let code = keyboard_event.key();
+                        let keystrokes = self.keystroke_decoder.decode(code);
                         for (keysym, direction) in keystrokes.as_keysyms() {
-                            let key = if let Some(key) = keysym_to_w3c_keycode(keysym) {
-                                key
-                            } else {
-                                continue;
-                            };
+                            let key = keysym_to_w3c_keycode(keysym);
+
                             let state = match direction {
                                 keystroke_decoder::KeyDirection::Up => State::Up,
                                 keystroke_decoder::KeyDirection::Down => State::Down,
                             };
                             let id = seat.id;
-                            let event_type = SeatEventType::Keyboard(KeyboardEvent::Key{key,state});
+                            let event_type = SeatEventType::Keyboard(KeyboardEvent::Key{code,key,state});
                             let event = SeatEvent::from((id,event_type));
                             new_events.push(Event::Seat(event));
                         }
