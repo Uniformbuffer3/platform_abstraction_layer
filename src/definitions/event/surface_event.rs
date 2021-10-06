@@ -59,12 +59,13 @@ pub struct SurfaceInfo {
 pub enum Surface {
     Raw(RawWindowHandle),
     #[cfg(feature="wgpu_backend")]
-    WGpu(Arc<wgpu::Surface>)
+    WGpu(Arc<crate::wgpu::Surface>)
 }
 impl PartialEq for Surface {
     fn eq(&self, other: &Self) -> bool {
         match (self,other) {
             (Self::Raw(raw1),Self::Raw(raw2))=>raw1 == raw2,
+            #[cfg(feature="wgpu_backend")]
             (Self::WGpu(raw1),Self::WGpu(raw2))=>Arc::ptr_eq(raw1,raw2),
             _=>false
         }

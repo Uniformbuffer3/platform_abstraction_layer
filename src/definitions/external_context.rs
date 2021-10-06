@@ -32,8 +32,8 @@ impl ExternalContext for RawContext {
 #[cfg(feature="wgpu_backend")]
 #[derive(Debug)]
 pub struct WgpuContext{
-    pub instance: Arc<wgpu::Instance>,
-    pub devices: Vec<Arc<(wgpu::Adapter,wgpu::Device, wgpu::Queue)>>
+    pub instance: Arc<crate::wgpu::Instance>,
+    pub devices: Vec<Arc<(crate::wgpu::Adapter,crate::wgpu::Device, crate::wgpu::Queue)>>
 }
 
 #[cfg(feature="wgpu_backend")]

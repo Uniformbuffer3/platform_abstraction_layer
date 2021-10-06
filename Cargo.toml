@@ -13,7 +13,8 @@ log = "*"
 petgraph = "*"
 simple-matrix = "*"
 keyboard-types = {version="*",default-features=false}
-wgpu = {git="https://github.com/Uniformbuffer3/wgpu",branch="external_memory_direct_display",optional=true}
+wgpu_standard = {version="0.9",package="wgpu", optional=true}
+wgpu_custom = {git="https://github.com/Uniformbuffer3/wgpu",branch="external_memory_direct_display", package="wgpu", optional=true}
 libc = {version = "*",optional=true}
 vulkano = {version = "*",optional=true}
 vulkano-shaders = {version = "*",optional=true}
@@ -31,7 +32,7 @@ x11rb = {version = "*", features=["randr","xinput","allow-unsafe-code"],default-
 
 
 [features]
-default = ["xcb_platform","parry2d","wgpu_backend"]
+default = ["xcb_platform","parry2d","wgpu_custom_backend"]
 
 #Platforms
 wayland_platform = ["smithay-client-toolkit","linux_platform"]
@@ -46,8 +47,9 @@ virtual_platform = ["parry2d"]
 #Backends
 libinput_backend = ["input","keystroke_decoder","libc"]
 vulkano_backend = ["vulkano"]
-wgpu_backend = ["wgpu"]
-
+wgpu_backend = []
+wgpu_standard_backend = ["wgpu_standard","wgpu_backend"]
+wgpu_custom_backend = ["wgpu_custom","wgpu_backend"]
 
 #Utils
 state_tracker = []
