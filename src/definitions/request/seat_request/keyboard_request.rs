@@ -1,5 +1,8 @@
 pub enum KeyboardRequest {
     ModifyLayout{layout: String},
-    SetAutoRepeat(bool),
+    SetAutoRepeat{
+        rate: u32,
+        delay: u32
+    },
 }
 

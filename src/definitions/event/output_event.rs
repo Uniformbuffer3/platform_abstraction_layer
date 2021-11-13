@@ -1,43 +1,34 @@
-use crate::definitions::{Position,Size,Mode,Subpixel};
+use crate::definitions::{Position2D,Size2D,Mode,Subpixel};
 
 #[derive(Clone,Debug,PartialEq)]
-pub struct OutputEvent {
-    pub id: OutputId,
-    pub event_type: OutputEventType
-}
-impl From<(OutputId,OutputEventType)> for OutputEvent {
-    fn from(tuple: (OutputId,OutputEventType))->Self {Self{id: tuple.0,event_type: tuple.1}}
-}
-
-#[derive(Clone,Debug,PartialEq)]
-pub enum OutputEventType {
+pub enum OutputEvent {
     Added(OutputInfo),
     ModeAdded(Mode),
     ModeChanged(Mode),
-    PositionChanged(Position),
+    Moved(Position2D<u32>),
     Removed
 }
 
 #[derive(Debug, PartialEq, Hash, Copy, Clone,Eq,Ord,PartialOrd)]
-pub struct OutputId(u32);
-impl Into<u32> for OutputId {
-    fn into(self) -> u32 {
-        self.0
-    }
-}
-impl From<u32> for OutputId {
-    fn from(hash: u32) -> Self {
-        Self(hash)
-    }
-}
+pub struct OutputId(usize);
 impl Into<usize> for OutputId {
     fn into(self) -> usize {
-        self.0 as usize
+        self.0
     }
 }
 impl From<usize> for OutputId {
     fn from(id: usize) -> Self {
-        Self(id as u32)
+        Self(id)
+    }
+}
+impl From<u32> for OutputId {
+    fn from(id: u32) -> Self {
+        Self(id as usize)
+    }
+}
+impl From<i32> for OutputId {
+    fn from(id: i32) -> Self {
+        Self(id as usize)
     }
 }
 impl std::fmt::Display for OutputId {
@@ -49,9 +40,9 @@ impl std::fmt::Display for OutputId {
 
 #[derive(Debug, Clone,PartialEq)]
 pub struct OutputInfo {
-    pub position: Position,
+    pub position: Position2D<u32>,
     pub selected_mode: Mode,
     pub available_modes: Vec<Mode>,
-    pub physical_size: Size,
+    pub physical_size: Size2D<u32>,
     pub subpixel: Subpixel,
 }

@@ -19,8 +19,11 @@ pub trait PlatformBackend {
     fn request(&mut self, requests: Vec<Request>);
 }
 
+#[cfg(target_os = "linux")]
+pub trait LinuxPlatformBackend: PlatformBackend + std::os::unix::io::AsRawFd {}
+
+#[derive(Debug,Clone, Copy, PartialEq)]
 pub enum PlatformType {
     Compositor,
     Direct
 }
-

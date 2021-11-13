@@ -26,8 +26,8 @@ pub fn handle_keyboard<S: 'static>(id: crate::definitions::SeatId, keyboard: Mai
                     };
 
                     let event = match direction {
-                        keystroke_decoder::KeyDirection::Up => SeatEventType::Keyboard(KeyboardEvent::KeyRelease{key}),
-                        keystroke_decoder::KeyDirection::Down => SeatEventType::Keyboard(KeyboardEvent::KeyPress{key}),
+                        keystroke_decoder::KeyDirection::Up => SeatEvent::Keyboard(KeyboardEvent::KeyRelease{key}),
+                        keystroke_decoder::KeyDirection::Down => SeatEvent::Keyboard(KeyboardEvent::KeyPress{key}),
                     };
 
                     dispatch_context.events.push(Event::Seat { id, event });

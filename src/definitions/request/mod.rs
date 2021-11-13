@@ -5,12 +5,21 @@ pub use output_request::*;
 mod surface_request;
 pub use surface_request::*;
 
+//use crate::definitions::{SeatId,OutputId,SurfaceId};
+
 pub enum Request {
-    Seat(SeatRequest),
-    Output(OutputRequest),
-    Surface(SurfaceRequest),
+    Seat{
+        request: SeatRequest
+    },
+    Output{
+        request: OutputRequest
+    },
+    Surface{
+        request: SurfaceRequest
+    },
 }
 
+/*
 impl From<SeatRequest> for Request {
     fn from(request: SeatRequest)->Self {Self::Seat(request)}
 }
@@ -20,3 +29,4 @@ impl From<OutputRequest> for Request {
 impl From<SurfaceRequest> for Request {
     fn from(request: SurfaceRequest)->Self {Self::Surface(request)}
 }
+*/

@@ -46,7 +46,7 @@ impl LibinputInterface for Interface {
 struct Seat {
     id: SeatId,
     name: String,
-    cursor_position: Position,
+    cursor_position: Position2D,
     cursor_mode: CursorMode,
     cursor_visible: bool,
     keyboard_layout: String,
@@ -95,7 +95,7 @@ impl PlatformBackend for LibinputWGpuPlatform {
                             let device = device_event.device();
 
                             if !self.seats.contains_key(&raw_seat.as_raw()){
-                                let position = self.output_manager.apply_limit(Position{x: 0,y: 0},Position{x: 0,y: 0});
+                                let position = self.output_manager.apply_limit(Position2D{x: 0,y: 0},Position2D{x: 0,y: 0});
                                 let seat = Seat {
                                     id: SeatId::from(self.id_counter),
                                     name: String::from(raw_seat.logical_name()),
@@ -124,8 +124,8 @@ impl PlatformBackend for LibinputWGpuPlatform {
                                         layout: seat.keyboard_layout.clone(),
                                         autorepeat: seat.keyboard_autorepeat
                                     };
-                                    let event_type = SeatEventType::Keyboard(KeyboardEvent::Added(info));
-                                    let event = SeatEvent::from((id,event_type));
+                                    let event = SeatEvent::Keyboard(KeyboardEvent::Added(info));
+                                    let event = SeatEvent::from((id,event));
                                     new_events.push(Event::Seat(event));
                                 }
                                 seat.keyboards.push(String::from(device.sysname()));
@@ -137,8 +137,8 @@ impl PlatformBackend for LibinputWGpuPlatform {
                                         mode: seat.cursor_mode,
                                         visible: seat.cursor_visible
                                     };
-                                    let event_type = SeatEventType::Cursor(CursorEvent::Added(info));
-                                    let event = SeatEvent::from((id,event_type));
+                                    let event = SeatEvent::Cursor(CursorEvent::Added(info));
+                                    let event = SeatEvent::from((id,event));
                                     new_events.push(Event::Seat(event));
                                 }
                                 seat.cursors.push(String::from(device.sysname()));
@@ -149,8 +149,8 @@ impl PlatformBackend for LibinputWGpuPlatform {
                                     let info = TouchInfo {
 
                                     };
-                                    let event_type = SeatEventType::Touch(TouchEvent::Added(info));
-                                    let event = SeatEvent::from((id,event_type));
+                                    let event = SeatEvent::Touch(TouchEvent::Added(info));
+                                    let event = SeatEvent::from((id,event));
                                     new_events.push(Event::Seat(event));
                                 }
                                 seat.touchs.push(String::from(device.sysname()));
@@ -164,8 +164,8 @@ impl PlatformBackend for LibinputWGpuPlatform {
                                     seat.keyboards.remove(index);
                                     if seat.keyboards.is_empty(){
                                         let id = seat.id;
-                                        let event_type = SeatEventType::Keyboard(KeyboardEvent::Removed);
-                                        let event = SeatEvent::from((id,event_type));
+                                        let event = SeatEvent::Keyboard(KeyboardEvent::Removed);
+                                        let event = SeatEvent::from((id,event));
                                         new_events.push(Event::Seat(event));
                                     }
                                 }
@@ -173,8 +173,8 @@ impl PlatformBackend for LibinputWGpuPlatform {
                                     seat.cursors.remove(index);
                                     if seat.keyboards.is_empty(){
                                         let id = seat.id;
-                                        let event_type = SeatEventType::Cursor(CursorEvent::Removed);
-                                        let event = SeatEvent::from((id,event_type));
+                                        let event = SeatEvent::Cursor(CursorEvent::Removed);
+                                        let event = SeatEvent::from((id,event));
                                         new_events.push(Event::Seat(event));
                                     }
                                 }
@@ -182,8 +182,8 @@ impl PlatformBackend for LibinputWGpuPlatform {
                                     seat.touchs.remove(index);
                                     if seat.touchs.is_empty() {
                                         let id = seat.id;
-                                        let event_type = SeatEventType::Touch(TouchEvent::Removed);
-                                        let event = SeatEvent::from((id,event_type));
+                                        let event = SeatEvent::Touch(TouchEvent::Removed);
+                                        let event = SeatEvent::from((id,event));
                                         new_events.push(Event::Seat(event));
                                     }
                                 }
@@ -203,8 +203,8 @@ impl PlatformBackend for LibinputWGpuPlatform {
                                 keystroke_decoder::KeyDirection::Down => State::Down,
                             };
                             let id = seat.id;
-                            let event_type = SeatEventType::Keyboard(KeyboardEvent::Key{code,key,state});
-                            let event = SeatEvent::from((id,event_type));
+                            let event = SeatEvent::Keyboard(KeyboardEvent::Key{code,key,state});
+                            let event = SeatEvent::from((id,event));
                             new_events.push(Event::Seat(event));
                         }
                     }
@@ -219,19 +219,19 @@ impl PlatformBackend for LibinputWGpuPlatform {
                                     CursorMode::Absolute=>{
                                         let x = seat.cursor_position.x + motion_event.dx() as u32;
                                         let y = seat.cursor_position.y + motion_event.dy() as u32;
-                                        let position = Position{x,y};
+                                        let position = Position2D{x,y};
                                         seat.cursor_position = position;
 
-                                        let event_type = SeatEventType::Cursor(CursorEvent::AbsoluteMovement{position});
-                                        let event = SeatEvent::from((id,event_type));
+                                        let event = SeatEvent::Cursor(CursorEvent::AbsoluteMovement{position});
+                                        let event = SeatEvent::from((id,event));
                                         new_events.push(Event::Seat(event));
 
 
                                     }
                                     CursorMode::Relative=>{
-                                        let offset = Offset{x: motion_event.dx() as f32,y: motion_event.dy() as f32};
-                                        let event_type = SeatEventType::Cursor(CursorEvent::RelativeMovement{offset});
-                                        let event = SeatEvent::from((id,event_type));
+                                        let offset = Offset2D<f32>{x: motion_event.dx() as f32,y: motion_event.dy() as f32};
+                                        let event = SeatEvent::Cursor(CursorEvent::RelativeMovement{offset});
+                                        let event = SeatEvent::from((id,event));
                                         new_events.push(Event::Seat(event));
                                     }
                                 }
@@ -249,19 +249,19 @@ impl PlatformBackend for LibinputWGpuPlatform {
                                         keystroke_decoder::KeyDirection::Up => KeyState::Up,
                                         keystroke_decoder::KeyDirection::Down => KeyState::Down,
                                     };
-                                    let event_type = SeatEventType::Cursor(CursorEvent::Button { key, state });
-                                    let event = SeatEvent::from((id,event_type));
+                                    let event = SeatEvent::Cursor(CursorEvent::Button { key, state });
+                                    let event = SeatEvent::from((id,event));
                                     new_events.push(Event::Seat(event));
                                 }
                             }
                             pointer::PointerEvent::Axis(axis_event) => {
-                                let event_type = SeatEventType::Cursor(CursorEvent::Axis {
-                                    value: Offset{
+                                let event = SeatEvent::Cursor(CursorEvent::Axis {
+                                    value: Offset2D<f32>{
                                         x: axis_event.axis_value(Axis::Horizontal) as f32,
                                         y: axis_event.axis_value(Axis::Vertical) as f32
                                     }
                                 });
-                                let event = SeatEvent::from((id,event_type));
+                                let event = SeatEvent::from((id,event));
                                 new_events.push(Event::Seat(event));
                             }
                             _ => {}

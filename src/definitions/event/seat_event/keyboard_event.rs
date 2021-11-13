@@ -7,9 +7,14 @@ pub enum KeyboardEvent {
     Key{
         code: u32,
         key: Option<Key>,
-        state: State
+        state: State,
+        serial: u32,
+        time: u32
     },
-    AutoRepeat(bool),
+    AutoRepeat{
+        rate: u32,
+        delay: u32
+    },
     LayoutModified{layout: String}
 }
 

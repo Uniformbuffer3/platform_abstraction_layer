@@ -1,57 +1,50 @@
 use raw_window_handle::RawWindowHandle;
 
-use crate::definitions::{Position,Size,OutputId};
+use crate::definitions::{Position2D,Size2D,OutputId};
 use std::sync::Arc;
 
 #[derive(Clone,Debug,PartialEq)]
-pub struct SurfaceEvent {
-    pub id: SurfaceId,
-    pub event_type: SurfaceEventType,
-}
-impl From<(SurfaceId,SurfaceEventType)> for SurfaceEvent {
-    fn from(tuple: (SurfaceId,SurfaceEventType))->Self {Self{id: tuple.0,event_type: tuple.1}}
-}
-
-#[derive(Clone,Debug,PartialEq)]
-pub enum SurfaceEventType {
+pub enum SurfaceEvent {
     Added(SurfaceInfo),
     Removed,
 
     Entered(OutputId),
     Left(OutputId),
 
-    Moved(Position),
-    Resized(Size),
+    //Moved(Position2D<u32>),
+    Resized(Size2D<u32>),
     Focused(bool),
     ModeChanged(SurfaceMode)
 }
 
 #[derive(Debug, PartialEq, Hash, Copy, Clone)]
-pub struct SurfaceId(u32);
-impl SurfaceId {
-    pub(crate) fn new(id: u32) -> Self {
-        Self(id)
-    }
-    pub fn id(&self) -> u32 {
+pub struct SurfaceId(usize);
+impl Into<usize> for SurfaceId {
+    fn into(self) -> usize {
         self.0
     }
 }
-impl From<u32> for SurfaceId {
-    fn from(hash: u32) -> Self {
+impl From<usize> for SurfaceId {
+    fn from(hash: usize) -> Self {
         Self(hash)
     }
 }
-impl From<SurfaceId> for u32 {
-    fn from(id: SurfaceId) -> Self {
-        id.0
+impl From<u32> for SurfaceId {
+    fn from(id: u32) -> Self {
+        Self(id as usize)
+    }
+}
+impl From<i32> for SurfaceId {
+    fn from(id: i32) -> Self {
+        Self(id as usize)
     }
 }
 impl Eq for SurfaceId {}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SurfaceInfo {
-    pub position: Position,
-    pub size: Size,
+    pub position: Position2D<u32>,
+    pub size: Size2D<u32>,
     pub surface: Surface
 }
 

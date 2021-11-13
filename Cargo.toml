@@ -19,7 +19,9 @@ libc = {version = "*",optional=true}
 vulkano = {version = "*",optional=true}
 vulkano-shaders = {version = "*",optional=true}
 parry2d = {version = "*",optional=true}
-
+smithay = {git="https://github.com/Smithay/smithay", branch="master",default-features=false,features=["backend_libinput"]}
+tokio = {version = "*",features=["net","rt"]}
+calloop = "*"
 
 [dev-dependencies]
 env_logger = "*"
@@ -28,7 +30,7 @@ env_logger = "*"
 keystroke_decoder = {git="https://github.com/Uniformbuffer3/keystroke_decoder.git",optional=true}
 input = {version = "*",features=["udev"],optional=true}
 smithay-client-toolkit = {version="*",optional=true}
-x11rb = {version = "*", features=["randr","xinput","allow-unsafe-code"],default-features=false,optional=true}
+x11rb = {version = "*", features=["randr","allow-unsafe-code","xkb","xfixes"],default-features=false,optional=true}
 
 
 [features]
@@ -54,3 +56,6 @@ wgpu_custom_backend = ["wgpu_custom","wgpu_backend"]
 #Utils
 state_tracker = []
 post_processing = []
+
+[patch."https://github.com/Uniformbuffer3/wgpu.git"]
+wgpu_custom = { path = "../wgpu/wgpu" ,package="wgpu"}

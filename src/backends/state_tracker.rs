@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use crate::definitions::{Event,
-    SeatEventType,SeatId,SeatInfo,
-    OutputEventType,OutputId,OutputInfo,
-    SurfaceEventType,SurfaceId,SurfaceInfo
+    SeatEvent,SeatId,SeatInfo,
+    OutputEvent,OutputId,OutputInfo,
+    SurfaceEvent,SurfaceId,SurfaceInfo
 };
 
 pub struct StateTracker {
@@ -22,43 +22,43 @@ impl StateTracker {
         events.iter().for_each(|event|{
             match event {
                 Event::Seat(ref seat_event)=>{
-                    match seat_event.event_type {
-                        SeatEventType::Added(ref info)=>{
+                    match seat_event.event {
+                        SeatEvent::Added(ref info)=>{
                             self.seats.insert(seat_event.id,info.clone());
                         }
-                        SeatEventType::Removed=>{
+                        SeatEvent::Removed=>{
                             self.seats.remove(&seat_event.id);
                         }
                         _=>{}
                     }
                 }
                 Event::Output(ref output_event)=>{
-                    match output_event.event_type {
-                        OutputEventType::Added(ref info)=>{
+                    match output_event.event {
+                        OutputEvent::Added(ref info)=>{
                             self.outputs.insert(output_event.id,info.clone());
                         }
-                        OutputEventType::Removed=>{
+                        OutputEvent::Removed=>{
                             self.outputs.remove(&output_event.id);
                         }
                         _=>{}
                     }
                 }
                 Event::Surface(ref surface_event)=>{
-                    match surface_event.event_type {
-                        SurfaceEventType::Added(ref info)=>{
+                    match surface_event.event {
+                        SurfaceEvent::Added(ref info)=>{
                             self.surfaces.insert(surface_event.id,info.clone());
                         }
-                        SurfaceEventType::Moved(ref position)=>{
+                        SurfaceEvent::Moved(ref position)=>{
                             if let Some(surface) = self.surfaces.get_mut(&surface_event.id){
                                 surface.position = *position;
                             }
                         }
-                        SurfaceEventType::Resized(ref size)=>{
+                        SurfaceEvent::Resized(ref size)=>{
                             if let Some(surface) = self.surfaces.get_mut(&surface_event.id){
                                 surface.size = *size;
                             }
                         }
-                        SurfaceEventType::Removed=>{
+                        SurfaceEvent::Removed=>{
                             self.surfaces.remove(&surface_event.id);
                         }
                         _=>{}

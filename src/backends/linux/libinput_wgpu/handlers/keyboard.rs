@@ -23,8 +23,8 @@ pub fn handle_keyboard<S>(
             keystroke_decoder::KeyDirection::Down => State::Down,
         };
 
-        let event_type = SeatEventType::Keyboard(KeyboardEvent::Key{key,state});
-        let event = SeatEvent::from((id,event_type));
+        let event = SeatEvent::Keyboard(KeyboardEvent::Key{key,state});
+        let event = SeatEvent::from((id,event));
         events.push(Event::Seat(event));
     }
     events

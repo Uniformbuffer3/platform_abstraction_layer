@@ -1,5 +1,3 @@
-use crate::definitions::SeatId;
-
 mod keyboard_request;
 pub use keyboard_request::*;
 
@@ -12,19 +10,11 @@ pub use touch_request::*;
 mod gamepad_request;
 pub use gamepad_request::*;
 
-pub struct SeatRequest {
-    pub id: SeatId,
-    pub event_type: SeatRequestType,
-}
-
-pub enum SeatRequestType {
+pub enum SeatRequest {
     Keyboard(KeyboardRequest),
     Cursor(CursorRequest),
     Touch(TouchRequest),
     Gamepad(GamepadRequest)
 }
-
-
-
 
 

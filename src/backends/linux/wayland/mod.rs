@@ -91,7 +91,7 @@ impl<S: 'static> WaylandPlatform<S> {
                     if !seat_data.defunct {
                         self.dispatch_context.seats.insert(id, seat);
 
-                        let event = SeatEventType::Added((id, seat_data.clone()).into());
+                        let event = SeatEvent::Added((id, seat_data.clone()).into());
                         self.dispatch_context.events.push(Event::Seat { id, event });
                     }
                 });
@@ -105,7 +105,7 @@ impl<S: 'static> WaylandPlatform<S> {
                     if data.defunct {
                         seat.release();
                         dispatch_context.seats.remove(&id);
-                        let event = SeatEventType::Removed;
+                        let event = SeatEvent::Removed;
                         dispatch_context.events.push(Event::Seat { id, event });
                     } else if dispatch_context.seats.contains_key(&id) {
                         let current_data: SeatInfo =
@@ -115,11 +115,11 @@ impl<S: 'static> WaylandPlatform<S> {
                             .unwrap();
                         match (current_data.has_pointer, data.has_pointer) {
                             (false, true) => {
-                                let event = SeatEventType::Changed(SeatCapability::PointerAdded);
+                                let event = SeatEvent::Changed(SeatCapability::PointerAdded);
                                 dispatch_context.events.push(Event::Seat { id, event });
                             }
                             (true, false) => {
-                                let event = SeatEventType::Changed(SeatCapability::PointerRemoved);
+                                let event = SeatEvent::Changed(SeatCapability::PointerRemoved);
                                 dispatch_context.events.push(Event::Seat { id, event });
                             }
                             _ => (),
@@ -128,22 +128,22 @@ impl<S: 'static> WaylandPlatform<S> {
                             (false, true) => {
                                 let keyboard = seat.get_keyboard();
                                 handle_keyboard::<S>(id, keyboard);
-                                let event = SeatEventType::Changed(SeatCapability::KeyboardAdded);
+                                let event = SeatEvent::Changed(SeatCapability::KeyboardAdded);
                                 dispatch_context.events.push(Event::Seat { id, event });
                             }
                             (true, false) => {
-                                let event = SeatEventType::Changed(SeatCapability::KeyboardRemoved);
+                                let event = SeatEvent::Changed(SeatCapability::KeyboardRemoved);
                                 dispatch_context.events.push(Event::Seat { id, event });
                             }
                             _ => (),
                         }
                         match (current_data.has_touch, data.has_touch) {
                             (false, true) => {
-                                let event = SeatEventType::Changed(SeatCapability::TouchAdded);
+                                let event = SeatEvent::Changed(SeatCapability::TouchAdded);
                                 dispatch_context.events.push(Event::Seat { id, event });
                             }
                             (true, false) => {
-                                let event = SeatEventType::Changed(SeatCapability::TouchRemoved);
+                                let event = SeatEvent::Changed(SeatCapability::TouchRemoved);
                                 dispatch_context.events.push(Event::Seat { id, event });
                             }
                             _ => (),
@@ -164,7 +164,7 @@ impl<S: 'static> WaylandPlatform<S> {
                         unimplemented!();
                         /*
                         let id = output_info.id.into();
-                        let event = OutputEventType::Added {};
+                        let event = OutputEvent::Added {};
                         self.dispatch_context.events.push(Event::Output{id,event});
                         */
                     }
@@ -177,9 +177,9 @@ impl<S: 'static> WaylandPlatform<S> {
                     let id = handle.as_ref().id().into();
                     let event = if data.obsolete {
                         handle.release();
-                        OutputEventType::Removed{}
+                        OutputEvent::Removed{}
                     } else {
-                        OutputEventType::Added{}
+                        OutputEvent::Added{}
                     };
                     dispatch_data
                         .get::<super::DispatchContext>()
@@ -260,7 +260,7 @@ impl<S: 'static> crate::definitions::GraphicBackend for WaylandPlatform<S> {
                             states: _,
                         } => {
                             if let Some(size) = new_size {
-                                let event = SurfaceEventType::Resized(Size::from((size.0,size.1)));
+                                let event = SurfaceEvent::Resized(Size2D<u32>::from((size.0,size.1)));
                                 let id = surface_id;
                                 dispatch_data
                                     .get::<DispatchContext<S>>()
@@ -280,15 +280,15 @@ impl<S: 'static> crate::definitions::GraphicBackend for WaylandPlatform<S> {
                                                         smithay_client_toolkit::window::State::TiledTop,
                                                         smithay_client_toolkit::window::State::TiledBottom,
                                                     }
-                                                    dispatch_data.get::<super::DispatchContext>().unwrap().events.push(SurfaceEventTypeInner::TilingChanged.into())
+                                                    dispatch_data.get::<super::DispatchContext>().unwrap().events.push(SurfaceEventInner::TilingChanged.into())
                                                 })
 
-                                                dispatch_data.get::<super::DispatchContext>().unwrap().events.push(SurfaceEventTypeInner::Destroyed.into())
+                                                dispatch_data.get::<super::DispatchContext>().unwrap().events.push(SurfaceEventInner::Destroyed.into())
                             */
                         }
                         smithay_client_toolkit::window::Event::Close => {
                             let id = surface_id;
-                            let event = SurfaceEventType::Destroyed;
+                            let event = SurfaceEvent::Destroyed;
                             dispatch_data
                                 .get::<DispatchContext<S>>()
                                 .unwrap()
@@ -305,7 +305,7 @@ impl<S: 'static> crate::definitions::GraphicBackend for WaylandPlatform<S> {
         unimplemented!();
 /*
         let id = output_id;
-        let event = OutputEventType::Added{};
+        let event = OutputEvent::Added{};
         self.dispatch_context.events.push(Event::Output{id,event});
         */
 

@@ -1,5 +1,7 @@
-use std::collections::HashMap;
 use crate::definitions::*;
+use std::cmp::Ordering;
+use std::collections::VecDeque;
+
 /*
 use parry2d::{
     shape::{Cuboid,Segment,Compound,SharedShape},
@@ -7,47 +9,141 @@ use parry2d::{
     query::{Ray,RayCast}
 };
 */
-struct Surface {
-    position: Position,
-    size: Size
+
+pub enum SurfaceKind {
+
+}
+
+pub enum SurfaceUpdate {
+    PositionChanged{id: usize,position: Position3D<u32>}
+}
+
+
+#[derive(Debug)]
+pub struct Surface {
+    pub id: usize,
+    pub position: Position3D<u32>,
+    pub size: Size2D<u32>,
 }
 impl Surface {
-    pub fn contains(&self,position: Position)->bool{
+    pub fn contains(&self,position: Position2D<u32>)->bool{
         position.x > self.position.x && position.x < self.position.x + self.size.width &&
         position.y > self.position.y && position.y < self.position.y + self.size.height
     }
 }
+impl Ord for Surface {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.position.z.cmp(&other.position.z)
+    }
+}
+impl PartialOrd for Surface {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.position.z.cmp(&other.position.z))
+    }
+}
 
-pub struct SurfaceManager {
-    surfaces: HashMap<SurfaceId,Surface>,
-    surface_stack: Vec<SurfaceId>
+impl PartialEq for Surface {
+    fn eq(&self, other: &Self) -> bool {
+        self.position.z == other.position.z
+    }
+}
+impl Eq for Surface {}
+
+#[derive(Debug)]
+pub struct SurfaceManager{
+    surfaces: VecDeque<Surface>
 }
 impl SurfaceManager {
     pub fn new()->Self {
+        let surfaces = VecDeque::new();
+        Self{surfaces}
+    }
+    pub fn add_surface(&mut self, id: usize, size: Size2D<u32>)->Vec<SurfaceUpdate>{
+        self.add_surface_inner(id, Position2D::from((0,0)), size)
+    }
+    pub fn add_surface_inner(&mut self, id: usize, position: Position2D<u32>, size: Size2D<u32>)->Vec<SurfaceUpdate>{
+        let position = Position3D::from((position,0));
+        self.surfaces.push_front(Surface {id,position,size});
+        self.update_depth(1..)
+    }
+    pub fn del_surface(&mut self,id: usize)->Vec<SurfaceUpdate>{
+        if let Some(position) = self.surfaces.iter().position(|surface|surface.id == id){
+            self.surfaces.remove(position);
+            self.update_depth(position..)
+        }
+        else{Vec::new()}
+    }
+
+    pub fn surface_ref<T>(&self,id: usize, callback: impl Fn(&Surface)->T)->Option<T> {
+        self.surfaces.iter().find_map(|surface|{
+            if surface.id == id {Some(callback(surface))}
+            else{None}
+        })
+    }
+    pub fn surface_mut<T>(&mut self,id: usize, callback: impl Fn(&mut Surface)->T)->Option<T> {
+        self.surfaces.iter_mut().find_map(|surface|{
+            if surface.id == id {Some(callback(surface))}
+            else{None}
+        })
+    }
+
+    fn update_depth<'a>(&'a mut self,range: impl std::ops::RangeBounds<usize>+Iterator<Item=usize> )->Vec<SurfaceUpdate> {
+        range.map(|index|{
+            self.surfaces[index].position.z = index as u32;
+            SurfaceUpdate::PositionChanged{
+                id: self.surfaces[index].id,
+                position: self.surfaces[index].position
+            }
+        }).collect()
+    }
+}
+
+
+
+/*
+pub struct GeometryManager {
+    outputs: HashMap<usize,Rectangle<u32>>,
+
+
+    //size: Size2D<u32>,
+    //window_space: Rectangle<u32>
+}
+impl GeometryManager {
+    pub fn new()->Self {
+        let outputs = HashMap::new();
         let surfaces = HashMap::new();
-        let surface_stack = Vec::new();
-        Self {surfaces,surface_stack}
+        let surface_stack = BTreeSet::new();
+        //let window_space = Rectangle {};
+        Self {outputs,surfaces,surface_stack}
     }
-    pub fn add_surface(&mut self, surface_id: SurfaceId,position: Position, size: Size){
-        let surface = Surface {position,size};
-        self.surfaces.insert(surface_id,surface);
-        self.surface_stack.push(surface_id);
+
+
+    pub fn add_surface(&mut self, id: usize, size: Size2D<u32>, reserve_space: bool){
+        let surface = Surface {position,size,reserve_space};
+
+        if reserve_space {
+            if position.y + size.height > self.window_space.position.y {
+            }
+        }
+
+        self.surfaces.insert(id,surface);
+        self.surface_stack.push(id);
     }
-    pub fn del_surface(&mut self, surface_id: SurfaceId){
-        self.surfaces.remove(&surface_id);
-        if let Some(index) = self.surface_stack.iter().position(|id|id == &surface_id){
+    pub fn del_surface(&mut self, id: usize){
+        self.surfaces.remove(&id);
+        if let Some(index) = self.surface_stack.iter().position(|current_id|current_id == &id){
             self.surface_stack.remove(index);
         }
     }
 
-    pub fn put_on_top(&mut self,surface_id: SurfaceId){
-        if let Some(index) = self.surface_stack.iter().position(|id|id == &surface_id){
-            let surface_id = self.surface_stack.remove(index);
-            self.surface_stack.push(surface_id);
+    pub fn put_on_top(&mut self,id: usize){
+        if let Some(index) = self.surface_stack.iter().position(|current_id|current_id == &id){
+            let id = self.surface_stack.remove(index);
+            self.surface_stack.push(id);
         }
     }
 
-    pub fn cursor_movement(&self, id: SeatId, old_position: Position, new_position: Position)->Vec<Event> {
+    pub fn cursor_movement(&self, id: SeatId, old_position: Position2D<u32>, new_position: Position2D<u32>)->Vec<Event> {
         let mut events = Vec::new();
         let surface_old = self.surface(old_position);
         let surface_new = self.surface(old_position);
@@ -55,10 +151,9 @@ impl SurfaceManager {
         match (surface_old,surface_new){
             (Some(id1),Some(id2))=>{
                 if id1 != id2 {
-                    let surface_id = id1;
-                    let event_type = SeatEventType::Cursor(CursorEvent::Left{surface_id});
-                    let event = SeatEvent::from((id,event_type));
-                    events.push(Event::Seat(event));
+                    let surface_id = id1.into();
+                    let event = SeatEvent::Cursor(CursorEvent::Left{surface_id});
+                    events.push(Event::Seat{id,event});
 
 /*
                     let old_position = Point::new(old_position.x as f32,old_position.y as f32);
@@ -74,21 +169,19 @@ impl SurfaceManager {
                     ).unwrap();
                     let point = ray.point_at(result.toi);
 
-                    //Position{x: point.coords.x as u32,y: point.coords.y as u32}
+                    //Position2D{x: point.coords.x as u32,y: point.coords.y as u32}
 */
 
 
-                    let surface_id = id2;
+                    let surface_id = id2.into();
                     let position = new_position;
-                    let event_type = SeatEventType::Cursor(CursorEvent::Entered{surface_id,position});
-                    let event = SeatEvent::from((id,event_type));
-                    events.push(Event::Seat(event));
+                    let event = SeatEvent::Cursor(CursorEvent::Entered{surface_id,position});
+                    events.push(Event::Seat{id,event});
                 }
 
                 let position = new_position;
-                let event_type = SeatEventType::Cursor(CursorEvent::AbsoluteMovement{position});
-                let event = SeatEvent::from((id,event_type));
-                events.push(Event::Seat(event));
+                let event = SeatEvent::Cursor(CursorEvent::AbsoluteMovement{position});
+                events.push(Event::Seat{id,event});
             }
             _=>{}
         }
@@ -96,7 +189,7 @@ impl SurfaceManager {
         events
     }
 
-    pub fn surface(&self,position: Position)->Option<SurfaceId> {
+    pub fn surface(&self,position: Position2D<u32>)->Option<usize> {
         for surface_id in &self.surface_stack {
             if let Some(surface) = self.surfaces.get(surface_id){
                 if surface.contains(position){return Some(*surface_id);}
@@ -106,3 +199,4 @@ impl SurfaceManager {
     }
 
 }
+*/

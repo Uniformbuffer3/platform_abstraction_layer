@@ -9,19 +9,19 @@ pub use output_event::*;
 
 #[derive(Clone, Debug,PartialEq)]
 pub enum Event {
-    Seat(SeatEvent),
-    Output(OutputEvent),
-    Surface(SurfaceEvent),
-}
-
-impl From<SeatEvent> for Event {
-    fn from(event: SeatEvent)->Self {Self::Seat(event)}
-}
-
-impl From<OutputEvent> for Event {
-    fn from(event: OutputEvent)->Self {Self::Output(event)}
-}
-
-impl From<SurfaceEvent> for Event {
-    fn from(event: SurfaceEvent)->Self {Self::Surface(event)}
+    Seat{
+        time: u32,
+        id: SeatId,
+        event: SeatEvent,
+    },
+    Output{
+        time: u32,
+        id: OutputId,
+        event: OutputEvent
+    },
+    Surface{
+        time: u32,
+        id: SurfaceId,
+        event: SurfaceEvent,
+    },
 }

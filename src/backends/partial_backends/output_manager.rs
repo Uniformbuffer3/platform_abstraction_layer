@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use log::info;
 
-use crate::definitions::{Position,Size,OutputId};
+use crate::definitions::{Position2D,Size2D,OutputId};
 
 use parry2d::{
     shape::{Cuboid,Compound,SharedShape},
@@ -18,25 +18,25 @@ use petgraph::{
 };
 
 pub trait OutputManager {
-    fn on_add(&mut self,graph: &GraphMap<OutputId,(),Undirected>,outputs: &HashMap<OutputId,PhysicalOutput>, id: OutputId, size: Size)->Vec<PhysicalOutputEvent>;
-    fn on_move(&mut self,graph: &GraphMap<OutputId,(),Undirected>,outputs: &HashMap<OutputId,PhysicalOutput>, id: OutputId, position: Position)->Vec<PhysicalOutputEvent>;
+    fn on_add(&mut self,graph: &GraphMap<OutputId,(),Undirected>,outputs: &HashMap<OutputId,PhysicalOutput>, id: OutputId, size: Size2D<u32>)->Vec<PhysicalOutputEvent>;
+    fn on_move(&mut self,graph: &GraphMap<OutputId,(),Undirected>,outputs: &HashMap<OutputId,PhysicalOutput>, id: OutputId, position: Position2D<u32>)->Vec<PhysicalOutputEvent>;
     fn on_remove(&mut self,graph: &GraphMap<OutputId,(),Undirected>,outputs: &HashMap<OutputId,PhysicalOutput>, id: OutputId)->Vec<PhysicalOutputEvent>;
 }
 
 #[derive(Debug,Copy,Clone)]
 pub enum PhysicalOutputEvent {
     Added{id: OutputId, output: PhysicalOutput},
-    Moved{id: OutputId, position: Position},
+    Moved{id: OutputId, position: Position2D<u32>},
     Removed{id: OutputId },
 }
 
 #[derive(Debug,Copy,Clone)]
 pub struct PhysicalOutput {
-    pub position: Position,
-    pub size: Size
+    pub position: Position2D<u32>,
+    pub size: Size2D<u32>
 }
 impl PhysicalOutput {
-    pub fn new(position: Position,size: Size)->Self {
+    pub fn new(position: Position2D<u32>,size: Size2D<u32>)->Self {
         Self {position,size}
     }
     pub fn get_shape(&self)->(Isometry<Real>,Cuboid){
@@ -90,14 +90,14 @@ impl<T: OutputManager> OutputConstraintKeeper<T> {
             max_dist
         }
     }
-    pub fn add_output(&mut self,id: OutputId, size: Size)->Vec<PhysicalOutputEvent> {
+    pub fn add_output(&mut self,id: OutputId, size: Size2D<u32>)->Vec<PhysicalOutputEvent> {
         let events = self.output_manager.on_add(&self.graph,&self.outputs,id,size);
 
         self.apply_events(events.clone());
         events
     }
 
-    pub fn move_output(&mut self,id: OutputId, position: Position)->Vec<PhysicalOutputEvent> {
+    pub fn move_output(&mut self,id: OutputId, position: Position2D<u32>)->Vec<PhysicalOutputEvent> {
         let events = self.output_manager.on_move(&self.graph,&self.outputs,id,position);
         self.apply_events(events.clone());
         events
@@ -259,7 +259,7 @@ impl<T: OutputManager> OutputConstraintKeeper<T> {
                 (x_offset,y_offset)
                 /*
                 info!("Contact: {:#?}",contact);
-                info!("Offset: {},{}",x_offset,y_offset);
+                info!("Offset2D<f32>: {},{}",x_offset,y_offset);
 
                 other_ids.iter().filter_map(|other_id|{
                     match self.outputs.get_mut(other_id){
@@ -350,21 +350,21 @@ impl<T: OutputManager> OutputConstraintKeeper<T> {
 
 /*
 
-    pub fn add_output(&mut self,size: Size)->Vec<PhysicalOutputEvent> {
+    pub fn add_output(&mut self,size: Size2D<u32>)->Vec<PhysicalOutputEvent> {
 
-        let id = self.outputs.add_node(PhysicalOutputEvent{position: Position{x:0,y:0},size: Size{width: 0,height: 0}}).index();
+        let id = self.outputs.add_node(PhysicalOutputEvent{position: Position2D{x:0,y:0},size: Size2D<u32>{width: 0,height: 0}}).index();
         let events = self.output_manager.on_add(&self.outputs,&size);
 
         self.apply_events(events);
 
 
 /*
-        let position = if self.output_stack.is_empty() {Position::from((0,0))}
+        let position = if self.output_stack.is_empty() {Position2D::from((0,0))}
         else {
 
             contact(&Isometry::translation(0.0,0.0),&self.shape,&monitor3.0,&monitor3.1,0.0)
             //let last_output = self.outputs.get(self.output_stack.last().unwrap()).unwrap();
-            //Position::from((last_output.position.x + last_output.size.width,0))
+            //Position2D::from((last_output.position.x + last_output.size.width,0))
         };
 
 */
@@ -374,7 +374,7 @@ impl<T: OutputManager> OutputConstraintKeeper<T> {
         events
     }
 
-    pub fn move_output(&mut self, id: OutputId, position: Position)->Option<PhysicalOutputEvent>{
+    pub fn move_output(&mut self, id: OutputId, position: Position2D)->Option<PhysicalOutputEvent>{
         //Clone the outputs.
         let mut outputs = self.outputs.clone();
         // Remove the target output, leaving all the others.
@@ -448,7 +448,7 @@ impl<T: OutputManager> OutputConstraintKeeper<T> {
         */
     }
 
-    pub fn apply_limit(&self, old_position: Position,new_position: Position)->Position {
+    pub fn apply_limit(&self, old_position: Position2D,new_position: Position2D)->Position2D {
         let old_position = Point::new(old_position.x as f32,old_position.y as f32);
         let new_position = Point::new(new_position.x as f32, new_position.y as f32);
         let segment = Segment::new(old_position,new_position);
@@ -462,7 +462,7 @@ impl<T: OutputManager> OutputConstraintKeeper<T> {
         ).unwrap();
         let point = ray.point_at(result.toi);
 
-        Position{x: point.coords.x as u32,y: point.coords.y as u32}
+        Position2D{x: point.coords.x as u32,y: point.coords.y as u32}
     }
 
     fn rebuild_shape(&mut self){

@@ -47,6 +47,18 @@ impl LinuxPlatform {
     }
 }
 
+#[cfg(target_os = "linux")]
+impl std::os::unix::io::AsRawFd for LinuxPlatform {
+    fn as_raw_fd(&self)->std::os::unix::io::RawFd {
+        match self {
+            #[cfg(feature = "wayland_platform")]
+            Self::Wayland(platform) => platform.as_raw_fd(),
+            #[cfg(feature = "xcb_platform")]
+            Self::Xcb(platform) => platform.as_raw_fd(),
+        }
+    }
+}
+
 impl crate::definitions::PlatformBackend for LinuxPlatform {
     fn platform_type(&self)->PlatformType {PlatformType::Compositor}
     fn events(&mut self) -> Vec<crate::definitions::Event> {

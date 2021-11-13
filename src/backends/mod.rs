@@ -78,3 +78,10 @@ impl PlatformBackend for Platform {
     }
     */
 }
+
+#[cfg(target_os = "linux")]
+impl std::os::unix::io::AsRawFd for Platform {
+    fn as_raw_fd(&self)->std::os::unix::io::RawFd {
+        self.backend.as_raw_fd()
+    }
+}
