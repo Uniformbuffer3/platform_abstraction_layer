@@ -199,6 +199,48 @@ pub struct Rectangle<P,S> {
     pub position: Position2D<P>,
     pub size: Size2D<S>
 }
+impl<P: Ord,S: Ord> Rectangle<P,S> {
+    pub fn bounding_box(rectangles: impl Iterator<Item=Rectangle<P,S>>)->Rectangle<P,S> {
+        let mut x = None;
+        let mut y = None;
+        let mut width = None;
+        let mut height = None;
+
+        for rectangle in rectangles {
+            match x {
+                None=>{x = Some(rectangle.position.x);}
+                Some(value)=>{x = Some(std::cmp::min(value,rectangle.position.x));}
+            }
+            match y {
+                None=>{y = Some(rectangle.position.y);}
+                Some(value)=>{y = Some(std::cmp::min(value,rectangle.position.y));}
+            }
+
+            match width {
+                None=>{width = Some(rectangle.size.width);}
+                Some(value)=>{width = Some(std::cmp::max(value,rectangle.size.width));}
+            }
+            match height {
+                None=>{height = Some(rectangle.size.height);}
+                Some(value)=>{height = Some(std::cmp::max(value,rectangle.size.height));}
+            }
+/*
+            if y.is_none() {y = Some(rectangle.position.y);}
+            else{y = Some(std::cmp::max(y,rectangle.position.y));}
+
+            y = Some(std::cmp::max(y,rectangle.position.y));
+            width = Some(std::cmp::min(width,rectangle.size.width));
+            height = Some(std::cmp::min(height,rectangle.size.height));
+            */
+        }
+
+        match (x,y,width,height) {
+            (Some(x),Some(y),Some(width),Some(height))=>Rectangle::from((Position2D::from((x,y)),Size2D::from((width,height)))),
+            _=>panic!()
+        }
+
+    }
+}
 impl<
     P: Copy + Add<Output=P>  + PartialOrd ,
     S: Copy+ std::convert::TryInto<P,Error = E>,

@@ -10,8 +10,7 @@ pub fn handle_keyboard(
     time: u32
 ) -> Vec<crate::definitions::Event> {
     let mut events = Vec::new();
-
-    let keystrokes = keystroke_decoder.decode(code - 8);
+    let keystrokes = keystroke_decoder.decode(code);
     for (keysym, direction) in keystrokes.as_keysyms() {
         let key = keysym_to_w3c_keycode(keysym);
 

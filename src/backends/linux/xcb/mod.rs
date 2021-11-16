@@ -185,7 +185,7 @@ impl PlatformBackend for XcbPlatform {
                     events.append(&mut handle_keyboard(
                         &mut self.keystroke_decoder,
                         0.into(),
-                        event.detail as u32,
+                        event.detail as u32-8,
                         event.sequence as u32,
                         event.time
                     ));
@@ -194,7 +194,7 @@ impl PlatformBackend for XcbPlatform {
                     events.append(&mut handle_keyboard(
                         &mut self.keystroke_decoder,
                         0.into(),
-                        event.detail as u32,
+                        event.detail as u32-8,
                         event.sequence as u32,
                         event.time
                     ));
@@ -202,8 +202,7 @@ impl PlatformBackend for XcbPlatform {
                 Event::ButtonPress(event) => {
                     let time = event.time;
                     let id = 0u32.into();
-                    //let surface_id = SurfaceId::from(event.event);
-                    //let position = Position2D::from((event.event_x as u32,event.event_y as u32));
+                    // Key codes taken from https://sources.debian.org/src/xserver-xorg-input-libinput/1.2.0-1/src/xf86libinput.c/#L249-L256
                     let code = match event.detail as u32 {
                         0 => 0,
                         1 => 272,            // BTN_LEFT
@@ -224,6 +223,7 @@ impl PlatformBackend for XcbPlatform {
                 Event::ButtonRelease(event) => {
                     let time = event.time;
                     let id = 0u32.into();
+                    // Key codes taken from https://sources.debian.org/src/xserver-xorg-input-libinput/1.2.0-1/src/xf86libinput.c/#L249-L256
                     let code = match event.detail as u32 {
                         0 => 0,
                         1 => 272,            // BTN_LEFT
@@ -365,7 +365,7 @@ impl PlatformBackend for XcbPlatform {
                     match cursor_request {
                         CursorRequest::ChangeImage(theme)=>{
                             match theme {
-                                CursorImage::Custom(data)=>{
+                                CursorImage::Custom(_data)=>{
                                     self.windows.iter().cloned().for_each(|window|{
                                         match x11rb::protocol::xfixes::show_cursor(self.connection.as_ref(),window){
                                             Ok(cookie)=>cookie.ignore_error(),
@@ -398,7 +398,7 @@ impl PlatformBackend for XcbPlatform {
                 }
                 crate::definitions::Request::Seat{request: SeatRequest::Gamepad(_gamepad_request)}=>{
                 }
-                crate::definitions::Request::Output{request}=>{
+                crate::definitions::Request::Output{request:_}=>{
 
                 }
                 crate::definitions::Request::Surface{request:SurfaceRequest::Create(output)}=>{

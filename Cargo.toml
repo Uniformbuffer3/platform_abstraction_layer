@@ -59,3 +59,4 @@ post_processing = []
 
 [patch."https://github.com/Uniformbuffer3/wgpu.git"]
 wgpu_custom = { path = "../wgpu/wgpu" ,package="wgpu"}
+
