@@ -25,10 +25,31 @@ pub enum CursorEvent {
         surface_id: SurfaceId,
     },
     Axis {
-        value: Offset2D<f32>,
+        source: AxisSource,
+        direction: AxisDirection,
+        value: AxisValue,
     },
     ModeChanged(CursorMode),
     VisibilityChanged(bool)
+}
+
+
+
+#[derive(Clone,Copy,Debug,PartialEq)]
+pub enum AxisSource {
+    Wheel
+}
+
+#[derive(Clone,Copy,Debug,PartialEq)]
+pub enum AxisDirection {
+    Horizontal,
+    Vertical
+}
+
+#[derive(Clone,Copy,Debug,PartialEq)]
+pub enum AxisValue {
+    Discrete(i32),
+    Continuous(f32)
 }
 
 #[derive(Clone,Copy,Debug,PartialEq)]

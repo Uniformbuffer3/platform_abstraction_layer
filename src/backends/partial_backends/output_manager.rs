@@ -23,14 +23,14 @@ pub trait OutputManager {
     fn on_remove(&mut self,graph: &GraphMap<OutputId,(),Undirected>,outputs: &HashMap<OutputId,PhysicalOutput>, id: OutputId)->Vec<PhysicalOutputEvent>;
 }
 
-#[derive(Debug,Copy,Clone)]
+#[derive(Debug,Clone, PartialEq)]
 pub enum PhysicalOutputEvent {
     Added{id: OutputId, output: PhysicalOutput},
     Moved{id: OutputId, position: Position2D<u32>},
     Removed{id: OutputId },
 }
 
-#[derive(Debug,Copy,Clone)]
+#[derive(Debug,Clone, PartialEq)]
 pub struct PhysicalOutput {
     pub position: Position2D<u32>,
     pub size: Size2D<u32>

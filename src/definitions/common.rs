@@ -7,7 +7,7 @@ pub enum CursorMode {
     Relative
 }
 
-#[derive(Debug,Copy,Clone,PartialEq)]
+#[derive(Debug,Clone,PartialEq)]
 pub struct Position2D<T>{pub x: T,pub y: T}
 impl<T> From<(T,T)> for Position2D<T> {
     fn from(position: (T,T))->Self {Self{x: position.0,y: position.1}}
@@ -60,9 +60,14 @@ impl<T: Sub<Output = T>> Sub<Offset2D<T>> for Position2D<T> {
         self
     }
 }
+impl<T: std::fmt::Display> std::fmt::Display for Position2D<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Position2D({},{})", self.x,self.y)
+    }
+}
 
 
-#[derive(Debug,Copy,Clone,PartialEq)]
+#[derive(Debug,Clone,PartialEq)]
 pub struct Position3D<T>{pub x: T,pub y: T,pub z: T}
 impl<T> From<(T,T,T)> for Position3D<T> {
     fn from(position: (T,T,T))->Self {Self{x: position.0,y: position.1,z: position.2}}
@@ -96,7 +101,7 @@ impl<T: Sub<Output = T>> Sub<Offset2D<T>> for Position3D<T> {
     }
 }
 
-#[derive(Debug,Copy,Clone,PartialEq)]
+#[derive(Debug,Clone,PartialEq)]
 pub struct Offset2D<T>{pub x: T,pub y: T}
 impl<T> From<(T,T)> for Offset2D<T> {
     fn from(offset: (T,T))->Self {Self{x: offset.0,y: offset.1}}
@@ -142,8 +147,13 @@ impl<T: Sub<Output = T>> Sub<Position3D<T>> for Offset2D<T> {
         other
     }
 }
+impl<T: std::fmt::Display> std::fmt::Display for Offset2D<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Offset({},{})", self.x,self.y)
+    }
+}
 
-#[derive(Debug,Copy,Clone,PartialEq)]
+#[derive(Debug,Clone,PartialEq)]
 pub struct Size2D<T>{pub width: T,pub height: T}
 impl<T> From<(T,T)> for Size2D<T> {
     fn from(size: (T,T))->Self {Self{width: size.0,height: size.1}}
@@ -157,24 +167,22 @@ impl<T: Copy> From<[T; 2]> for Size2D<T> {
 impl<T: Copy> Into<[T; 2]> for Size2D<T> {
     fn into(self)->[T; 2] {[self.width,self.height]}
 }
+/*
 impl<T: Add<Output = T>> Add<Self> for Size2D<T> {
-    type Output = Self;
+    type Output = Offset2D<T>;
 
-    fn add(mut self, other: Self) -> Self::Output {
-        self.width = self.width + other.width;
-        self.height = self.height + other.height;
-        self
+    fn add(self, other: Self) -> Self::Output {
+        Offset2D::from((self.width + other.width,self.height + other.height))
     }
 }
 impl<T: Sub<Output = T>> Sub<Self> for Size2D<T> {
-    type Output = Self;
+    type Output = Offset2D<D>;
 
-    fn sub(mut self, other: Self) -> Self::Output {
-        self.width = self.width - other.width;
-        self.height = self.height - other.height;
-        self
+    fn sub(self, other: Self) -> Self::Output {
+        Offset2D::from((self.width - other.width,self.height - other.height))
     }
 }
+*/
 impl<T: Add<Output = T>> Add<Offset2D<T>> for Size2D<T> {
     type Output = Self;
 
@@ -193,8 +201,13 @@ impl<T: Sub<Output = T>> Sub<Offset2D<T>> for Size2D<T> {
         self
     }
 }
+impl<T: std::fmt::Display> std::fmt::Display for Size2D<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Size({},{})", self.width,self.height)
+    }
+}
 
-#[derive(Debug,Clone, Copy, PartialEq)]
+#[derive(Debug,Clone, PartialEq)]
 pub struct Rectangle<P,S> {
     pub position: Position2D<P>,
     pub size: Size2D<S>
@@ -246,7 +259,7 @@ impl<
     S: Copy+ std::convert::TryInto<P,Error = E>,
     E: std::fmt::Debug
 > Rectangle<P,S> {
-    pub fn contains(&self,position: Position2D<P>)->bool{
+    pub fn contains(&self,position: &Position2D<P>)->bool{
         position.x > self.position.x && position.x < self.position.x + self.size.width.try_into().unwrap() &&
         position.y > self.position.y && position.y < self.position.y + self.size.height.try_into().unwrap()
     }
@@ -259,7 +272,7 @@ impl<
     E: std::fmt::Debug
 > Rectangle<P,S> {
     pub fn relative_to(&self, position: Position2D<P>)->Option<Position2D<P>>{
-        if self.contains(position) {Some(position - self.position)}
+        if self.contains(&position) {Some(position - self.position.clone())}
         else{None}
     }
 }

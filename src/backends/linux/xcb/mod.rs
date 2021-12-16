@@ -202,44 +202,104 @@ impl PlatformBackend for XcbPlatform {
                 Event::ButtonPress(event) => {
                     let time = event.time;
                     let id = 0u32.into();
+                    let state = State::Down;
                     // Key codes taken from https://sources.debian.org/src/xserver-xorg-input-libinput/1.2.0-1/src/xf86libinput.c/#L249-L256
                     let code = match event.detail as u32 {
                         0 => 0,
-                        1 => 272,            // BTN_LEFT
-                        2 => 273,            // BTN_MIDDLE
-                        3 => 274,            // BTN_RIGHT
-                        _ => event.detail as u32 - 8 + 275, // BTN_SIZE
+                        1 => 272,           // Left mouse
+                        2 => 273,           // Middle mouse
+                        3 => 274,           // Right mouse
+                        4 => 275,           // Scroll up
+                        5 => 276,           // Scroll down
+                        value => {
+                            println!("Scroll: {}",value);
+                            event.detail as u32 - 8 + 275
+                        }, // BTN_SIZE
                     };
-                    let key = match code {
-                        272 => Some(crate::definitions::Button::Left),
-                        273 => Some(crate::definitions::Button::Middle),
-                        274 => Some(crate::definitions::Button::Right),
-                        _=> None
-                    };
-                    let state = State::Down;
-                    let event = SeatEvent::Cursor(CursorEvent::Button {code,key,state});
-                    events.push(crate::definitions::Event::Seat{time,id,event});
+                    match code {
+                        272 => {
+                            let key = Some(crate::definitions::Button::Left);
+                            let event = SeatEvent::Cursor(CursorEvent::Button {code,key,state});
+                            events.push(crate::definitions::Event::Seat{time,id,event});
+                        },
+                        273 => {
+                            let key = Some(crate::definitions::Button::Middle);
+                            let event = SeatEvent::Cursor(CursorEvent::Button {code,key,state});
+                            events.push(crate::definitions::Event::Seat{time,id,event});
+                        },
+                        274 => {
+                            let key = Some(crate::definitions::Button::Right);
+                            let event = SeatEvent::Cursor(CursorEvent::Button {code,key,state});
+                            events.push(crate::definitions::Event::Seat{time,id,event});
+                        },
+                        /*
+                        275 => {
+                            let source = AxisSource::Wheel;
+                            let direction = AxisDirection::Vertical;
+                            let value = AxisValue::Discrete(1);
+                            let event = SeatEvent::Cursor(CursorEvent::Axis {source,direction,value});
+                            events.push(crate::definitions::Event::Seat{time,id,event});
+                        },
+                        276 => {
+                            let source = AxisSource::Wheel;
+                            let direction = AxisDirection::Vertical;
+                            let value = AxisValue::Discrete(-1);
+                            let event = SeatEvent::Cursor(CursorEvent::Axis {source,direction,value});
+                            events.push(crate::definitions::Event::Seat{time,id,event});
+                        },
+                        */
+                        _=> ()
+                    }
                 }
                 Event::ButtonRelease(event) => {
                     let time = event.time;
                     let id = 0u32.into();
+                    let state = State::Up;
                     // Key codes taken from https://sources.debian.org/src/xserver-xorg-input-libinput/1.2.0-1/src/xf86libinput.c/#L249-L256
                     let code = match event.detail as u32 {
                         0 => 0,
-                        1 => 272,            // BTN_LEFT
-                        2 => 273,            // BTN_MIDDLE
-                        3 => 274,            // BTN_RIGHT
-                        _ => event.detail as u32 - 8 + 275, // BTN_SIZE
+                        1 => 272,           // Left mouse
+                        2 => 273,           // Middle mouse
+                        3 => 274,           // Right mouse
+                        4 => 275,           // Scroll up
+                        5 => 276,           // Scroll down
+                        value => {
+                            println!("Scroll: {}",value);
+                            event.detail as u32 - 8 + 275
+                        }, // BTN_SIZE
                     };
-                    let key = match code {
-                        272 => Some(crate::definitions::Button::Left),
-                        273 => Some(crate::definitions::Button::Middle),
-                        274 => Some(crate::definitions::Button::Right),
-                        _=> None
-                    };
-                    let state = State::Up;
-                    let event = SeatEvent::Cursor(CursorEvent::Button {code,key,state});
-                    events.push(crate::definitions::Event::Seat{time,id,event});
+                    match code {
+                        272 => {
+                            let key = Some(crate::definitions::Button::Left);
+                            let event = SeatEvent::Cursor(CursorEvent::Button {code,key,state});
+                            events.push(crate::definitions::Event::Seat{time,id,event});
+                        },
+                        273 => {
+                            let key = Some(crate::definitions::Button::Middle);
+                            let event = SeatEvent::Cursor(CursorEvent::Button {code,key,state});
+                            events.push(crate::definitions::Event::Seat{time,id,event});
+                        },
+                        274 => {
+                            let key = Some(crate::definitions::Button::Right);
+                            let event = SeatEvent::Cursor(CursorEvent::Button {code,key,state});
+                            events.push(crate::definitions::Event::Seat{time,id,event});
+                        },
+                        275 => {
+                            let source = AxisSource::Wheel;
+                            let direction = AxisDirection::Vertical;
+                            let value = AxisValue::Discrete(-1);
+                            let event = SeatEvent::Cursor(CursorEvent::Axis {source,direction,value});
+                            events.push(crate::definitions::Event::Seat{time,id,event});
+                        },
+                        276 => {
+                            let source = AxisSource::Wheel;
+                            let direction = AxisDirection::Vertical;
+                            let value = AxisValue::Discrete(1);
+                            let event = SeatEvent::Cursor(CursorEvent::Axis {source,direction,value});
+                            events.push(crate::definitions::Event::Seat{time,id,event});
+                        },
+                        _=> ()
+                    }
                 }
                 Event::EnterNotify(event)=>{
                     let time = event.time;
@@ -368,24 +428,24 @@ impl PlatformBackend for XcbPlatform {
                                 CursorImage::Custom(_data)=>{
                                     self.windows.iter().cloned().for_each(|window|{
                                         match x11rb::protocol::xfixes::show_cursor(self.connection.as_ref(),window){
-                                            Ok(cookie)=>cookie.ignore_error(),
-                                            Err(_)=>()
+                                            Ok(cookie)=>cookie.check().unwrap(),//cookie.ignore_error(),
+                                            Err(err)=>eprint!("Error: {}",err)
                                         }
                                     });
                                 }
                                 CursorImage::Default=>{
                                     self.windows.iter().cloned().for_each(|window|{
                                         match x11rb::protocol::xfixes::show_cursor(self.connection.as_ref(),window){
-                                            Ok(cookie)=>cookie.ignore_error(),
-                                            Err(_)=>()
+                                            Ok(cookie)=>cookie.check().unwrap(),
+                                            Err(err)=>eprint!("Error: {}",err)
                                         }
                                     });
                                 }
                                 CursorImage::Hidden=>{
                                     self.windows.iter().cloned().for_each(|window|{
                                         match x11rb::protocol::xfixes::hide_cursor(self.connection.as_ref(),window){
-                                            Ok(cookie)=>cookie.ignore_error(),
-                                            Err(_)=>()
+                                            Ok(cookie)=>cookie.check().unwrap(),//cookie.ignore_error(),
+                                            Err(err)=>eprint!("Error: {}",err)
                                         }
                                     });
                                 }
