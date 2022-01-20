@@ -8,6 +8,7 @@ mod output_event;
 pub use output_event::*;
 
 #[derive(Clone, Debug,PartialEq)]
+/// Possible events.
 pub enum Event {
     Seat{
         time: u32,

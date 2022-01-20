@@ -8,6 +8,7 @@ mod gamepad_event;
 pub use gamepad_event::*;
 
 #[derive(Clone,Debug,PartialEq)]
+/// Possible seat events.
 pub enum SeatEvent {
     Added{
         name: String,
@@ -39,6 +40,7 @@ impl From<TouchEvent> for SeatEvent {
 }
 
 #[derive(Debug, PartialEq, Hash, Copy, Clone)]
+/// Seat identifier.
 pub struct SeatId(usize);
 impl Into<usize> for SeatId {
     fn into(self) -> usize {
@@ -63,6 +65,7 @@ impl From<i32> for SeatId {
 impl Eq for SeatId {}
 
 #[derive(Debug,Clone, PartialEq)]
+/// Seat informations.
 pub struct SeatInfo {
     pub id: SeatId,
     pub name: String,

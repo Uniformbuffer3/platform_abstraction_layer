@@ -10,6 +10,7 @@ pub use touch_request::*;
 mod gamepad_request;
 pub use gamepad_request::*;
 
+/// Possible seat requests.
 pub enum SeatRequest {
     Keyboard(KeyboardRequest),
     Cursor(CursorRequest),

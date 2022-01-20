@@ -232,22 +232,6 @@ impl PlatformBackend for XcbPlatform {
                             let event = SeatEvent::Cursor(CursorEvent::Button {code,key,state});
                             events.push(crate::definitions::Event::Seat{time,id,event});
                         },
-                        /*
-                        275 => {
-                            let source = AxisSource::Wheel;
-                            let direction = AxisDirection::Vertical;
-                            let value = AxisValue::Discrete(1);
-                            let event = SeatEvent::Cursor(CursorEvent::Axis {source,direction,value});
-                            events.push(crate::definitions::Event::Seat{time,id,event});
-                        },
-                        276 => {
-                            let source = AxisSource::Wheel;
-                            let direction = AxisDirection::Vertical;
-                            let value = AxisValue::Discrete(-1);
-                            let event = SeatEvent::Cursor(CursorEvent::Axis {source,direction,value});
-                            events.push(crate::definitions::Event::Seat{time,id,event});
-                        },
-                        */
                         _=> ()
                     }
                 }
@@ -340,27 +324,16 @@ impl PlatformBackend for XcbPlatform {
                 Event::ClientMessage(event) => {
                     let data = event.data.as_data32();
                     if event.format == 32 && data[0] == self.wm_delete_window {
-                        self.request(vec![Request::Surface{request: SurfaceRequest::Destroy(event.window.into())}]);
-                        //self.connection.destroy_window(event.window).unwrap();
-                        //self.connection.flush().unwrap();
+                        self.requests(vec![Request::Surface{request: SurfaceRequest::Destroy(event.window.into())}]);
                     }
                 }
-                /*
-                Event::XinputChangeDeviceNotify(event)=>{
-                    println!("{:#?}",event);
-                }
-
-                Event::PropertyNotify(event)=>{
-                    println!("{:#?}",&event);
-                }
-                */
                 _ => {}
             }
         }
         events
     }
 
-    fn request(&mut self, requests: Vec<Request>) {
+    fn requests(&mut self, requests: Vec<Request>) {
         requests.into_iter().for_each(|request|{
             match request {
                 crate::definitions::Request::Seat{request: SeatRequest::Keyboard(keyboard_request)}=>{

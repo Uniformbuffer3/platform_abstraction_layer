@@ -2,12 +2,17 @@ use std::ops::{Add,Sub};
 use std::cmp::PartialOrd;
 
 #[derive(Clone,Copy,Debug,PartialEq)]
+/**
+Mode used by the cursor. Absolute means the associated coordinates are an absolute.
+Relative means the associated coordinates are relative to the previous coordinates.
+*/
 pub enum CursorMode {
     Absolute,
     Relative
 }
 
 #[derive(Debug,Clone,PartialEq)]
+/// Position on a bidimensional space.
 pub struct Position2D<T>{pub x: T,pub y: T}
 impl<T> From<(T,T)> for Position2D<T> {
     fn from(position: (T,T))->Self {Self{x: position.0,y: position.1}}
@@ -66,8 +71,8 @@ impl<T: std::fmt::Display> std::fmt::Display for Position2D<T> {
     }
 }
 
-
 #[derive(Debug,Clone,PartialEq)]
+/// Position on a tridimensional space.
 pub struct Position3D<T>{pub x: T,pub y: T,pub z: T}
 impl<T> From<(T,T,T)> for Position3D<T> {
     fn from(position: (T,T,T))->Self {Self{x: position.0,y: position.1,z: position.2}}
@@ -102,6 +107,7 @@ impl<T: Sub<Output = T>> Sub<Offset2D<T>> for Position3D<T> {
 }
 
 #[derive(Debug,Clone,PartialEq)]
+/// Offset on a bidimensional space.
 pub struct Offset2D<T>{pub x: T,pub y: T}
 impl<T> From<(T,T)> for Offset2D<T> {
     fn from(offset: (T,T))->Self {Self{x: offset.0,y: offset.1}}
@@ -154,6 +160,7 @@ impl<T: std::fmt::Display> std::fmt::Display for Offset2D<T> {
 }
 
 #[derive(Debug,Clone,PartialEq)]
+/// Size on a bidimensional space.
 pub struct Size2D<T>{pub width: T,pub height: T}
 impl<T> From<(T,T)> for Size2D<T> {
     fn from(size: (T,T))->Self {Self{width: size.0,height: size.1}}
@@ -208,6 +215,7 @@ impl<T: std::fmt::Display> std::fmt::Display for Size2D<T> {
 }
 
 #[derive(Debug,Clone, PartialEq)]
+/// Combination of position and offset on a bidimensional space.
 pub struct Rectangle<P,S> {
     pub position: Position2D<P>,
     pub size: Size2D<S>
@@ -290,6 +298,7 @@ impl<P,S> From<(Size2D<S>,Position2D<P>)> for Rectangle<P,S> {
 }
 
 #[derive(Debug, Clone,PartialEq)]
+/// Surface transformation.
 pub enum Transform {
     Normal,
     _90,
@@ -303,6 +312,7 @@ pub enum Transform {
 
 
 #[derive(Debug, Clone,PartialEq)]
+/// Display mode.
 pub struct Mode {
     pub resolution: Size2D<u32>,
     pub refresh_rate: u32,
@@ -310,6 +320,7 @@ pub struct Mode {
 }
 
 #[derive(Debug, Clone,PartialEq)]
+/// Subpixel alignment.
 pub enum Subpixel {
     Unknown,
     None,

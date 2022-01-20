@@ -57,6 +57,6 @@ wgpu_custom_backend = ["wgpu_custom","wgpu_backend"]
 state_tracker = []
 post_processing = []
 
-[patch."https://github.com/Uniformbuffer3/wgpu.git"]
-wgpu_custom = { path = "../wgpu/wgpu" ,package="wgpu"}
+#[patch."https://github.com/Uniformbuffer3/wgpu.git"]
+#wgpu_custom = { path = "../wgpu/wgpu" ,package="wgpu"}
 

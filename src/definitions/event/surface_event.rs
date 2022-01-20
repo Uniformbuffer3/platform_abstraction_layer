@@ -4,6 +4,7 @@ use crate::definitions::{Position2D,Size2D,OutputId};
 use std::sync::Arc;
 
 #[derive(Clone,Debug,PartialEq)]
+/// Possible surface events.
 pub enum SurfaceEvent {
     Added(SurfaceInfo),
     Removed,
@@ -18,6 +19,7 @@ pub enum SurfaceEvent {
 }
 
 #[derive(Debug, PartialEq, Hash, Copy, Clone)]
+/// Surface identifier.
 pub struct SurfaceId(usize);
 impl Into<usize> for SurfaceId {
     fn into(self) -> usize {
@@ -42,6 +44,7 @@ impl From<i32> for SurfaceId {
 impl Eq for SurfaceId {}
 
 #[derive(Debug, Clone, PartialEq)]
+/// Surface informations.
 pub struct SurfaceInfo {
     pub position: Position2D<u32>,
     pub size: Size2D<u32>,
@@ -49,6 +52,7 @@ pub struct SurfaceInfo {
 }
 
 #[derive(Debug, Clone)]
+/// Possible surface kinds.
 pub enum Surface {
     Raw(RawWindowHandle),
     #[cfg(feature="wgpu_backend")]
@@ -80,6 +84,7 @@ impl<S> std::fmt::Debug for SurfaceInfo<S> {
 */
 
 bitflags::bitflags! {
+    /// Surface modes.
     pub struct SurfaceMode: u32 {
         const MINIMIZED = (1 << 0);
         const MAXIMIZED = (1 << 1);

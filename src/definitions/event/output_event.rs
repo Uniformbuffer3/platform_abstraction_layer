@@ -1,6 +1,7 @@
 use crate::definitions::{Position2D,Size2D,Mode,Subpixel};
 
 #[derive(Clone,Debug,PartialEq)]
+/// Possible output events.
 pub enum OutputEvent {
     Added(OutputInfo),
     ModeAdded(Mode),
@@ -10,6 +11,7 @@ pub enum OutputEvent {
 }
 
 #[derive(Debug, PartialEq, Hash, Copy, Clone,Eq,Ord,PartialOrd)]
+/// Output identifier.
 pub struct OutputId(usize);
 impl Into<usize> for OutputId {
     fn into(self) -> usize {
@@ -39,6 +41,7 @@ impl std::fmt::Display for OutputId {
 
 
 #[derive(Debug, Clone,PartialEq)]
+/// Output informations.
 pub struct OutputInfo {
     pub position: Position2D<u32>,
     pub selected_mode: Mode,

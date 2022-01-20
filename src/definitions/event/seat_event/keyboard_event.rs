@@ -1,6 +1,7 @@
 pub use keyboard_types::{Code as Key,KeyState as State};
 
 #[derive(Clone,Debug,PartialEq)]
+/// Possible keyboard events.
 pub enum KeyboardEvent {
     Added(KeyboardInfo),
     Removed,
@@ -19,6 +20,7 @@ pub enum KeyboardEvent {
 }
 
 #[derive(Clone,Debug,PartialEq)]
+/// Keyboard informations.
 pub struct KeyboardInfo {
     pub layout: String,
     pub autorepeat: bool,
@@ -26,6 +28,7 @@ pub struct KeyboardInfo {
 }
 
 #[derive(Clone,Debug,PartialEq)]
+/// Keystroke encoding.
 pub enum KeyEncoding {
     XkbV1
 }

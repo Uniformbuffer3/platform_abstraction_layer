@@ -24,6 +24,9 @@ pub use common::*;
 use crate::definitions::*;
 use log::*;
 
+/**
+Wrapper over all the linux platforms.
+*/
 pub enum LinuxPlatform {
     #[cfg(feature = "wayland_platform")]
     Wayland(WaylandPlatform),
@@ -69,12 +72,12 @@ impl crate::definitions::PlatformBackend for LinuxPlatform {
             Self::Xcb(platform) => platform.events(),
         }
     }
-    fn request(&mut self, requests: Vec<Request>) {
+    fn requests(&mut self, requests: Vec<Request>) {
         match self {
             #[cfg(feature = "wayland_platform")]
-            Self::Wayland(platform) => platform.request(requests),
+            Self::Wayland(platform) => platform.requests(requests),
             #[cfg(feature = "xcb_platform")]
-            Self::Xcb(platform) => platform.request(requests),
+            Self::Xcb(platform) => platform.requests(requests),
         }
     }
 }

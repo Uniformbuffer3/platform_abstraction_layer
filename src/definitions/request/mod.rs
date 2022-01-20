@@ -6,7 +6,7 @@ mod surface_request;
 pub use surface_request::*;
 
 //use crate::definitions::{SeatId,OutputId,SurfaceId};
-
+/// Possible requests.
 pub enum Request {
     Seat{
         request: SeatRequest

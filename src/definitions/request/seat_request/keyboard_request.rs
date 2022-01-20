@@ -1,3 +1,4 @@
+/// Possible keyboard requests.
 pub enum KeyboardRequest {
     ModifyLayout{layout: String},
     SetAutoRepeat{

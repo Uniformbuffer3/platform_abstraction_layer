@@ -15,6 +15,10 @@ use post_processing::PostProcessing;
 
 use crate::definitions::*;
 
+/**
+Entry point of the library, it allows the user to manage input events,
+monitor outputs and surface creations under a unified abstraction.
+*/
 pub struct Platform {
     #[cfg(all(target_os = "linux",feature="linux_platform"))]
     backend: linux::LinuxPlatform,
@@ -64,19 +68,7 @@ impl PlatformBackend for Platform {
 
         events
     }
-    fn request(&mut self, requests: Vec<Request>) {self.backend.request(requests);}
-    /*
-    fn set_keyboard_layout(&mut self, layout: String)->Result<(),KeyboardLayoutError>{
-        #[cfg(feature="any_platform")]
-        self.backend.set_keyboard_layout(layout)
-    }
-    fn set_key_repeat(&mut self, _seat_id: SeatId, _value: bool)->Result<(),KeyRepeatError>{Err(KeyRepeatError::Unsupported)}
-    fn set_cursor_mode(&mut self, _seat_id: SeatId, _mode: CursorMode)->Result<(),CursorModeError>{Err(CursorModeError::Unsupported)}
-    fn create_surface(&mut self,output: Option<OutputId>)->Result<(),SurfaceError>{
-        #[cfg(feature="any_platform")]
-        self.backend.create_surface(output)
-    }
-    */
+    fn requests(&mut self, requests: Vec<Request>) {self.backend.requests(requests);}
 }
 
 #[cfg(target_os = "linux")]

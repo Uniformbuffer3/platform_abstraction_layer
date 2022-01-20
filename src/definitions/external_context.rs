@@ -11,11 +11,13 @@ pub enum ExternalContext {
     Raw(RawContext)
 }*/
 
+/// Trait providing the capability to create surfaces.
 pub trait ExternalContext {
     fn create_surface(&self,raw_surface: &RawSurfaceHandle)->Result<Surface,()>;
 }
 
 #[derive(Debug)]
+/// Raw context to create surfaces.
 pub struct RawContext;
 impl ExternalContext for RawContext {
     fn create_surface(&self,raw_surface: &RawSurfaceHandle)->Result<Surface,()> {
@@ -31,6 +33,7 @@ impl ExternalContext for RawContext {
 
 #[cfg(feature="wgpu_backend")]
 #[derive(Debug)]
+/// Context to create WGpu surfaces.
 pub struct WgpuContext{
     pub instance: Arc<crate::wgpu::Instance>,
     pub devices: Vec<Arc<(crate::wgpu::Adapter,crate::wgpu::Device, crate::wgpu::Queue)>>
@@ -57,8 +60,10 @@ impl ExternalContext for WgpuContext {
 }
 
 
+/// Display identifier.
 pub type Display = u32;
 #[derive(Debug)]
+/// Supported surface handles.
 pub enum RawSurfaceHandle {
     #[cfg(unix)]
     Xcb(raw_window_handle::unix::XcbHandle),
